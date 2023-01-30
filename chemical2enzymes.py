@@ -69,10 +69,12 @@ for i in range(0,len(rxns)):
                     for k in j["citation"]["citationCrossReferences"]:
                         if k["database"] == "DOI":
                             dois.append(k["id"])
+                # The "NCBI_ID" is needed to get the genome context in the next step. Prefer to use RefSeq, but can use EMBL.
             try:
                 ncbi_id = [e["id"] for e in entry["uniProtKBCrossReferences"] if e["database"] == "RefSeq"][0]
             except:
-                ncbi_id = None
+                ncbi_id = [e["properties"] for e in entry["uniProtKBCrossReferences"] if e["database"] == "EMBL"][0]
+                ncbi_id = [e["value"] for e in ncbi_id if e["key"] == "ProteinId"][0]
 
             uniprotID = entry["primaryAccession"]
             organism = entry["organism"]["lineage"]
