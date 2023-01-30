@@ -15,8 +15,17 @@ from pprint import pprint
 # 8. Generate a report for each candidate regulator
 
 #InChiKey = "KWIUHFFTVRNATP-UHFFFAOYSA-N"   # Found BetI
-#InChiKey = "NIXOWILDQLNWCW-UHFFFAOYSA-M"    # Found AcuR
-InChiKey = "KBPLFHHGFOOTCA-UHFFFAOYSA-N"
+#InChiKey = "KBPLFHHGFOOTCA-UHFFFAOYSA-N"
+InChiKey = "NIXOWILDQLNWCW-UHFFFAOYSA-M"    # Found AcuR
+chemical_name = "acrylate"
+domain_filter = "Bacteria"
+lineage_filter_name = "Family"
+
+    # have to map name to number because names are more human readable, but numbers are how
+        # lineages are retrieved programmatically via the Uniprot API.
+map_lineage2number = {"Domain": 0, "Phylum": 1, "Class": 2, "Order": 3, "Family": 4}
+lineage_filter = map_lineage2number[lineage_filter_name]
+
 
     # get rhea ids from chemical
 url= "https://www.rhea-db.org/rhea?"
@@ -28,9 +37,19 @@ parameter = {
 response = requests.get(url,params=parameter)
 
 data = json.loads(response.text)["results"]
-rxns = [{"rhea_id": i["id"], "equation": i["equation"]} for i in data]
 
+output = {
+    "metadata": {
+        "chemical name": chemical_name,
+        "InChiKey": InChiKey,
+        "domain_filter": domain_filter,
+        "lineage_similarity_filter": lineage_filter_name
+    }
+}
 
+output["rxn_data"] = [{"rhea_id": i["id"], "equation": i["equation"]} for i in data]
+
+rxns = output["rxn_data"]
 
 url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:true+AND+rhea:"
 
@@ -59,12 +78,13 @@ for i in range(0,len(rxns)):
             organism = entry["organism"]["lineage"]
 
             protein = {
-                "description": description,
-                "uniprot_id": uniprotID,
-                "dois": dois,
                 "organism": organism,
-                "ncbi_id": ncbi_id,
-
+                "enzyme": {
+                    "description": description,
+                    "uniprot_id": uniprotID,
+                    "dois": dois,
+                    "ncbi_id": ncbi_id,
+                }
             }
             proteins.append(protein)
     
@@ -77,18 +97,11 @@ rxns = [i for i in rxns if len(i["proteins"]) != 0]
 
     #DOUBLE LIST COMPREHENSION!!!
 num_proteins = len([protein for rxn in rxns for protein in rxn["proteins"]])
-print(str(num_proteins) + " proteins total")
-
+output["metadata"]["number_reviewed_enzymes"] = num_proteins
 
 
 
 # filter out highly similar proteins
-lineage_filter = 4
-        # Domain = 0
-        # Phyllum = 1
-        # Class = 2
-        # Order = 3
-        # Family = 4
 filtered_rxns = []
 for rxn in rxns:
     filtered_proteins = []
@@ -102,8 +115,11 @@ for rxn in rxns:
     new_rxn["proteins"] = filtered_proteins
     filtered_rxns.append(new_rxn)
 
+output["rxn_data"] = filtered_rxns
 
 filtered_proteins = len([protein for rxn in filtered_rxns for protein in rxn["proteins"]])
-print(str(filtered_proteins) + " filtered proteins")
+output["metadata"]["number_lineage_filtered_enzymes"] = filtered_proteins
 
-pprint(filtered_rxns)
+with open(chemical_name+".json", "w+") as f:
+    f.write(json.dumps(output))
+    print("json file for "+chemical_name+" created")
