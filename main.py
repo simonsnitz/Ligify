@@ -1,5 +1,5 @@
 from src.chemical2enzymes import chem2enzymes
-from src.enzymes2operons import append_operons, pull_regulators
+from src.enzymes2operons import append_operons, pull_regulators, protein2chemicals
 import os
 
 
@@ -44,8 +44,10 @@ lineage_filter_name = "Family"
 
 
 
-chem2enzymes(InChiKey, chemical_name, domain_filter, lineage_filter_name)
+# chem2enzymes(InChiKey, chemical_name, domain_filter, lineage_filter_name)
 
-append_operons(chemical_name)
+# append_operons(chemical_name)
 
 pull_regulators(chemical_name)
+
+# protein2chemicals('WP_010889412.1')

@@ -1,6 +1,7 @@
 import json
 from src.accID2operon import acc2operon
 import re
+import requests
 from pprint import pprint
 
 def append_operons(chemical_name: str):
@@ -32,6 +33,62 @@ def append_operons(chemical_name: str):
             print("operon data for "+chemical_name+" cached in archives")
 
 
+#TODO:
+# Get all chemicals associated with the regulator-bearing operons (append a chemicals:[])
+# Get all literature associated with each protein in the operon (append a doi:[])
+
+
+
+
+def protein2chemicals(accession: str):
+    url = "https://rest.uniprot.org/uniprotkb/search?query="+accession+"&format=json"
+
+    response = requests.get(url)
+    if response.ok:
+        protein = json.loads(response.text)["results"][0]["comments"]
+
+        protein_data = {}
+
+            # look for description
+        Function = [i["texts"][0]["value"] for i in protein if i["commentType"] == "FUNCTION"]
+        if len(Function) != 0:
+            protein_data["function"] = Function[0]
+ 
+
+            # look for catalytic activity
+        CATALYSIS = [i["reaction"]["name"] for i in protein if i["commentType"] == "CATALYTIC ACTIVITY"]
+        if len(CATALYSIS) != 0:
+            protein_data["catalysis"] = CATALYSIS[0]
+
+            # look for catalytic activity
+        RXN = [i["reaction"]["reactionCrossReferences"] for i in protein if i["commentType"] == "CATALYTIC ACTIVITY"]
+        if len(RXN) != 0:
+            LIGANDS = [i["id"] for i in RXN[0] if i["database"] == "ChEBI"]
+            if len(LIGANDS) != 0:
+                protein_data["ligands"] = LIGANDS
+
+            # look for induction
+        INDUCTION = [i["texts"][0]["value"] for i in protein if i["commentType"] == "INDUCTION"]
+        if len(INDUCTION) != 0:
+            protein_data["induction"] = INDUCTION[0]
+
+                    # look for induction
+        PATHWAY = [i["texts"][0]["value"] for i in protein if i["commentType"] == "PATHWAY"]
+        if len(PATHWAY) != 0:
+            protein_data["pathway"] = PATHWAY[0]
+
+
+
+        pprint(protein_data)
+    else:
+        response.raise_for_status()
+
+
+    
+
+
+
+
 
 
 def pull_regulators(chemical_name: str):
@@ -49,5 +106,7 @@ def pull_regulators(chemical_name: str):
                         for gene in operon:
                             if "description" in gene.keys():
                                 if regulator.search(gene["description"]):
-                                    print(gene["accession"])
-                                    #print(protein["organism"])
+                                    #print(gene["accession"])
+                                    for gene in operon:
+                                        protein2chemicals(gene["accession"])
+                                    print("\n")
