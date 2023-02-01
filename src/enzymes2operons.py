@@ -45,41 +45,59 @@ def protein2chemicals(accession: str):
 
     response = requests.get(url)
     if response.ok:
-        protein = json.loads(response.text)["results"][0]["comments"]
+        protein = json.loads(response.text)
 
-        protein_data = {}
+        ligand_names = []
+        ligand_ids = []
 
-            # look for description
-        Function = [i["texts"][0]["value"] for i in protein if i["commentType"] == "FUNCTION"]
-        if len(Function) != 0:
-            protein_data["function"] = Function[0]
- 
+        if len(protein['results']) > 0:
+            if "comments" in protein["results"][0]:
+                protein = protein["results"][0]["comments"]
 
-            # look for catalytic activity
-        CATALYSIS = [i["reaction"]["name"] for i in protein if i["commentType"] == "CATALYTIC ACTIVITY"]
-        if len(CATALYSIS) != 0:
-            protein_data["catalysis"] = CATALYSIS[0]
+                protein_data = {}
 
-            # look for catalytic activity
-        RXN = [i["reaction"]["reactionCrossReferences"] for i in protein if i["commentType"] == "CATALYTIC ACTIVITY"]
-        if len(RXN) != 0:
-            LIGANDS = [i["id"] for i in RXN[0] if i["database"] == "ChEBI"]
-            if len(LIGANDS) != 0:
-                protein_data["ligands"] = LIGANDS
+                    # look for description
+                Function = [i["texts"][0]["value"] for i in protein if i["commentType"] == "FUNCTION"]
+                if len(Function) != 0:
+                    protein_data["function"] = Function[0]
+        
 
-            # look for induction
-        INDUCTION = [i["texts"][0]["value"] for i in protein if i["commentType"] == "INDUCTION"]
-        if len(INDUCTION) != 0:
-            protein_data["induction"] = INDUCTION[0]
+                    # look for catalytic activity
+                CATALYSIS = [i["reaction"]["name"] for i in protein if i["commentType"] == "CATALYTIC ACTIVITY"]
+                if len(CATALYSIS) != 0:
+                    protein_data["catalysis"] = CATALYSIS[0]
+                    
+
+                    # look for catalytic activity
+                try:
+                    RXN = [i["reaction"]["reactionCrossReferences"] for i in protein if i["commentType"] == "CATALYTIC ACTIVITY"]
+                    if len(RXN) != 0:
+                        LIGANDS = [i["id"] for i in RXN[0] if i["database"] == "ChEBI"]
+                        if len(LIGANDS) != 0:
+                            protein_data["ligands"] = LIGANDS
+                except:
+                    pass
 
                     # look for induction
-        PATHWAY = [i["texts"][0]["value"] for i in protein if i["commentType"] == "PATHWAY"]
-        if len(PATHWAY) != 0:
-            protein_data["pathway"] = PATHWAY[0]
+                INDUCTION = [i["texts"][0]["value"] for i in protein if i["commentType"] == "INDUCTION"]
+                if len(INDUCTION) != 0:
+                    protein_data["induction"] = INDUCTION[0]
+
+                            # look for induction
+                PATHWAY = [i["texts"][0]["value"] for i in protein if i["commentType"] == "PATHWAY"]
+                if len(PATHWAY) != 0:
+                    protein_data["pathway"] = PATHWAY[0]
 
 
+                # add something to append all this metadata
 
-        pprint(protein_data)
+
+                
+                # try:
+                #     pprint(protein_data["catalysis"])
+                # except:
+                #     pass
+                return(protein_data)
     else:
         response.raise_for_status()
 
@@ -99,14 +117,18 @@ def pull_regulators(chemical_name: str):
 
         for rxn in ligand["rxn_data"]:
             for protein in rxn["proteins"]:
-
+                ligand_names = []
                 if "context" in protein.keys():
                     if protein["context"] != "EMPTY":
                         operon = protein["context"]["operon"]
                         for gene in operon:
                             if "description" in gene.keys():
                                 if regulator.search(gene["description"]):
-                                    #print(gene["accession"])
+                                    print(gene["accession"])
                                     for gene in operon:
-                                        protein2chemicals(gene["accession"])
+                                        protein_data = protein2chemicals(gene["accession"])
+                                        if isinstance(protein_data, dict):
+                                            if "catalysis" in protein_data.keys():
+                                                ligand_names.append(protein_data["catalysis"].split(" "))
                                     print("\n")
+                print(ligand_names)
