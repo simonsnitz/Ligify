@@ -36,18 +36,26 @@ import os
 # InChiKey = "CZMRCDWAGMRECN-UGDNZRGBSA-N"     # Didn't find SghR, but found other candidates.
 # chemical_name = "sucrose"
 
-InChiKey = "LOIYMIARKYCTBW-OWOJBTEDSA-N"        # Found 85% identical homolog of known regulator (HutC)
-chemical_name = "urconate"
+# InChiKey = "LOIYMIARKYCTBW-OWOJBTEDSA-N"        # Found 85% identical homolog of known regulator (HutC)
+# chemical_name = "urconate"
+
+InChiKey = "CPJRRXSHAYUTGL-UHFFFAOYSA-N"        # Found 
+chemical_name = "isoprene"
 
 domain_filter = "Bacteria"
 lineage_filter_name = "Family"
+reviewed= "false"
 
 
 
-# chem2enzymes(InChiKey, chemical_name, domain_filter, lineage_filter_name)
+chem2enzymes(InChiKey = InChiKey,
+                chemical_name = chemical_name, 
+                domain_filter = domain_filter,
+                lineage_filter_name = lineage_filter_name, 
+                reviewed = reviewed)
 
-# append_operons(chemical_name)
+append_operons(chemical_name)
 
 pull_regulators(chemical_name)
 
-# protein2chemicals('WP_010889412.1')
+protein2chemicals('WP_010889412.1')

@@ -14,7 +14,7 @@ domain_filter = "Bacteria"
 lineage_filter_name = "Family"
 
 
-def chem2enzymes(InChiKey: str, chemical_name: str, domain_filter: str, lineage_filter_name: str):
+def chem2enzymes(InChiKey: str, chemical_name: str, domain_filter: str, lineage_filter_name: str, reviewed: str):
     
     if os.path.isfile("archives/"+chemical_name+".json") == True:
         print("enzyme data already cached")
@@ -51,7 +51,7 @@ def chem2enzymes(InChiKey: str, chemical_name: str, domain_filter: str, lineage_
 
         rxns = output["rxn_data"]
 
-        url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:true+AND+rhea:"
+        url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:"+reviewed+"+AND+rhea:"
 
         for i in range(0,len(rxns)):
 

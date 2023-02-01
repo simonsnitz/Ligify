@@ -118,6 +118,7 @@ def pull_regulators(chemical_name: str):
         for rxn in ligand["rxn_data"]:
             for protein in rxn["proteins"]:
                 ligand_names = []
+                ligand_CheBIs = []
                 if "context" in protein.keys():
                     if protein["context"] != "EMPTY":
                         operon = protein["context"]["operon"]
@@ -129,6 +130,7 @@ def pull_regulators(chemical_name: str):
                                         protein_data = protein2chemicals(gene["accession"])
                                         if isinstance(protein_data, dict):
                                             if "catalysis" in protein_data.keys():
-                                                ligand_names.append(protein_data["catalysis"].split(" "))
-                                    print("\n")
-                print(ligand_names)
+                                                ligand_names += protein_data["catalysis"].split(" ")
+                if len(ligand_names) > 0:
+                    print(list(set(ligand_names)))
+                    print("\n")
