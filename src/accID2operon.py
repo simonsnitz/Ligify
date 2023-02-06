@@ -73,12 +73,14 @@ def NC2genome(NCacc):
 
     if response.ok:
         data = response.text
-        with open('src/temp/genome.txt', mode='w+') as f:
+        #with open('src/temp/genome.txt', mode='w+') as f:
+        with open('temp/genome.txt', mode='w+') as f:
             f.write(data)
     else:
         print('bad request')
     
-    with open('src/temp/genome.txt', mode='r+') as f:
+    #with open('src/temp/genome.txt', mode='r+') as f:
+    with open('temp/genome.txt', mode='r+') as f:
         genome = f.readlines()
     return genome
 
@@ -219,6 +221,14 @@ def getOperon(allGenes, index, seq_start, strand):
     return geneArray, regulatorIndex
 
 
+def acc2genome(acc: str):
+    metaData = acc2MetaData(acc)
+    genome = NC2genome(metaData["accver"])
+
+    #print(genome)
+    # with open("temp.txt", "w+") as f:
+    #     f.write(genome)
+
 
 
 
@@ -240,4 +250,6 @@ def acc2operon(accession):
 
 if __name__ == "__main__":
     
-    pprint(acc2operon("NP_418810.1"))
+    pprint(acc2operon("WP_187140699.1"))
+
+    #acc2genome("WP_003080639.1")

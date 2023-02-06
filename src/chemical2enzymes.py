@@ -50,6 +50,7 @@ def chem2enzymes(InChiKey: str, chemical_name: str, domain_filter: str, lineage_
         output["rxn_data"] = [{"rhea_id": i["id"], "equation": i["equation"]} for i in data]
 
         rxns = output["rxn_data"]
+        
 
         url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:"+reviewed+"+AND+rhea:"
 

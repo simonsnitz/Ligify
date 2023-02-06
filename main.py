@@ -1,6 +1,9 @@
+from pprint import pprint
+
 from src.chemical2enzymes import chem2enzymes
 from src.enzymes2operons import append_operons, pull_regulators, protein2chemicals
-import os
+from src.make_chemDB import make_chemDB
+from src.query_chemDB import query_chemDB
 
 
 # InChiKey = "NIXOWILDQLNWCW-UHFFFAOYSA-M"    # Found AcuR
@@ -39,13 +42,23 @@ import os
 # InChiKey = "LOIYMIARKYCTBW-OWOJBTEDSA-N"        # Found 85% identical homolog of known regulator (HutC)
 # chemical_name = "urconate"
 
-InChiKey = "CPJRRXSHAYUTGL-UHFFFAOYSA-N"        # Found 
-chemical_name = "isoprene"
+#InChiKey = "CPJRRXSHAYUTGL-UHFFFAOYSA-N"        # Found 
+chemical_name = "buten-2-one"
+InChiKey = "FUSUHKVFWTUUBE-UHFFFAOYSA-N"
+chemical_smiles = "CC(=O)C=C"
 
+
+    # Rhea enzyme output filter criteria
 domain_filter = "Bacteria"
 lineage_filter_name = "Family"
 reviewed= "false"
 
+
+    # file where I'm storing info on all chemicals included in Rhea
+rhea_chemDB = "data/all_rhea_chemicals.json"
+make_chemDB(rhea_chemDB)
+scores = query_chemDB(rhea_chemDB, chemical_smiles)
+pprint(scores[0:5])
 
 
 chem2enzymes(InChiKey = InChiKey,
@@ -58,4 +71,4 @@ append_operons(chemical_name)
 
 pull_regulators(chemical_name)
 
-protein2chemicals('WP_010889412.1')
+# protein2chemicals('WP_010889412.1')

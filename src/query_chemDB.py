@@ -2,7 +2,6 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit import DataStructs
 import json
-import requests
 
 
 def tanimoto_calc(smi1, smi2):
@@ -17,8 +16,7 @@ def tanimoto_calc(smi1, smi2):
         return 0
 
 
-
-def search_ligand_database(db: str, target: str):
+def query_chemDB(db: str, target: str):
 
     with open(db, "r") as f:
         data = json.load(f)
@@ -26,13 +24,16 @@ def search_ligand_database(db: str, target: str):
     def get_score(chem):
         return chem.get('score')
 
-    scores = []
-    for i in data:
-        tani = tanimoto_calc(i["smiles"], target)
-        scores.append({"name": i["name"], "score": tani, "smiles": i["smiles"]})
+    scores = [ 
+            {"name": i["name"],     
+            "score": tanimoto_calc(i["smiles"], target),    
+            "smiles": i["smiles"], 
+            "inchi_key": i["inchi_key"]
+            } for i in data]
     
     scores.sort(key=get_score, reverse=True)
-    print(scores[0:10])
+
+    return scores
 
 
 
@@ -55,7 +56,7 @@ if __name__ == "__main__":
 
         # databases
     groov = "groovLigands.json"
-    rhea = "../../src/data/all_rhea_chemicals.json"
+    rhea = "data/all_rhea_chemicals.json"
 
-    data = search_ligand_database(rhea, target)
-    print(data)
+    data = query_chemDB(rhea, target)
+    print(data[0:5])
