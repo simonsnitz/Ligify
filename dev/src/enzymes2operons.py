@@ -126,6 +126,7 @@ def pull_regulators(chemical_name: str):
                             if "description" in gene.keys():
                                 if regulator.search(gene["description"]):
                                     print(gene["accession"])
+                                    print(protein["enzyme"])
                                     for gene in operon:
                                         protein_data = protein2chemicals(gene["accession"])
                                         if isinstance(protein_data, dict):

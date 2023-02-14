@@ -28,7 +28,7 @@ def query_chemDB(db: str, target: str):
             {"name": i["name"],     
             "score": tanimoto_calc(i["smiles"], target),    
             "smiles": i["smiles"], 
-            "inchi_key": i["inchi_key"]
+            # "inchi_key": i["inchi_key"]
             } for i in data]
     
     scores.sort(key=get_score, reverse=True)
@@ -51,12 +51,14 @@ def query_chemDB(db: str, target: str):
 
 if __name__ == "__main__":
 
-        # isoprene
-    target = "CC(=C)C=C"
+        # vitamin B5
+    target = "CC(C)(CO)[C@H](C(=O)NCCC(=O)O)O"
+
 
         # databases
-    groov = "groovLigands.json"
+    groov = "../calc_similarity/chemical/groovLigands.json"
     rhea = "data/all_rhea_chemicals.json"
+    db = rhea
 
-    data = query_chemDB(rhea, target)
+    data = query_chemDB(db, target)
     print(data[0:5])

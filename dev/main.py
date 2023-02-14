@@ -42,23 +42,27 @@ from src.query_chemDB import query_chemDB
 # InChiKey = "LOIYMIARKYCTBW-OWOJBTEDSA-N"        # Found 85% identical homolog of known regulator (HutC)
 # chemical_name = "urconate"
 
-#InChiKey = "CPJRRXSHAYUTGL-UHFFFAOYSA-N"        # Found 
-chemical_name = "buten-2-one"
-InChiKey = "FUSUHKVFWTUUBE-UHFFFAOYSA-N"
-chemical_smiles = "CC(=O)C=C"
+#InChiKey = "CPJRRXSHAYUTGL-UHFFFAOYSA-N"      
+# chemical_name = "O-acetylserine"
+# InChiKey = "VZXPDPZARILFQX-BYPYZUCNSA-N"
+# chemical_smiles = "CC(=O)C=C"
+
+chemical_name = "pantoate"
+InChiKey = "OTOIIPJYVQJATP-BYPYZUCNSA-N"
+chemical_smiles = "CC(C)(CO)[C@H](C(=O)O)O"
 
 
     # Rhea enzyme output filter criteria
 domain_filter = "Bacteria"
 lineage_filter_name = "Family"
-reviewed= "false"
+reviewed= "true"
 
 
     # file where I'm storing info on all chemicals included in Rhea
-rhea_chemDB = "data/all_rhea_chemicals.json"
-make_chemDB(rhea_chemDB)
-scores = query_chemDB(rhea_chemDB, chemical_smiles)
-pprint(scores[0:5])
+# rhea_chemDB = "data/all_rhea_chemicals.json"
+# make_chemDB(rhea_chemDB)
+# scores = query_chemDB(rhea_chemDB, chemical_smiles)
+# pprint(scores[0:5])
 
 
 chem2enzymes(InChiKey = InChiKey,

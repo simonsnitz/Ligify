@@ -73,14 +73,14 @@ def NC2genome(NCacc):
 
     if response.ok:
         data = response.text
-        #with open('src/temp/genome.txt', mode='w+') as f:
         with open('temp/genome.txt', mode='w+') as f:
+        #with open('temp/genome.txt', mode='w+') as f:
             f.write(data)
     else:
         print('bad request')
     
-    #with open('src/temp/genome.txt', mode='r+') as f:
     with open('temp/genome.txt', mode='r+') as f:
+    #with open('temp/genome.txt', mode='r+') as f:
         genome = f.readlines()
     return genome
 

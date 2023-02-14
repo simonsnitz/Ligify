@@ -51,8 +51,9 @@ def chem2enzymes(InChiKey: str, chemical_name: str, domain_filter: str, lineage_
 
         rxns = output["rxn_data"]
         
-
+            # is there a limit of 25 entries here???
         url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:"+reviewed+"+AND+rhea:"
+
 
         for i in range(0,len(rxns)):
 
@@ -134,5 +135,5 @@ def chem2enzymes(InChiKey: str, chemical_name: str, domain_filter: str, lineage_
 
         with open("archives/"+chemical_name+".json", "w+") as f:
             f.write(json.dumps(output))
-            print("enzyme data for "+chemical_name+" cached in archives")
+            print(str(filtered_proteins)+" enzymes for "+chemical_name+" cached in archives")
         
