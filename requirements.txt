@@ -1,6 +1,5 @@
 altair==4.2.2
 attrs==22.2.0
-biopython==1.80
 blinker==1.5
 cachetools==5.3.0
 certifi==2022.12.7
@@ -14,17 +13,15 @@ idna==3.4
 importlib-metadata==6.0.0
 Jinja2==3.1.2
 jsonschema==4.17.3
-libChEBIpy==1.0.10
 markdown-it-py==2.1.0
 MarkupSafe==2.1.2
 mdurl==0.1.2
-numpy==1.24.1
+numpy==1.24.2
 packaging==23.0
 pandas==1.5.3
 Pillow==9.4.0
 protobuf==3.20.3
 pyarrow==11.0.0
-pycairo==1.23.0
 pydeck==0.8.0
 Pygments==2.14.0
 Pympler==1.0.1
@@ -32,7 +29,6 @@ pyrsistent==0.19.3
 python-dateutil==2.8.2
 pytz==2022.7.1
 pytz-deprecation-shim==0.1.0.post0
-rdkit-pypi==2022.9.4
 requests==2.28.2
 rich==13.3.1
 semver==2.13.0
@@ -47,5 +43,6 @@ tzdata==2022.7
 tzlocal==4.2
 urllib3==1.26.14
 validators==0.20.0
+watchdog==2.2.1
 xmltodict==0.13.0
 zipp==3.13.0
