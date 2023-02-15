@@ -47,9 +47,9 @@ from src.query_chemDB import query_chemDB
 # InChiKey = "VZXPDPZARILFQX-BYPYZUCNSA-N"
 # chemical_smiles = "CC(=O)C=C"
 
-chemical_name = "pantoate"
-InChiKey = "OTOIIPJYVQJATP-BYPYZUCNSA-N"
-chemical_smiles = "CC(C)(CO)[C@H](C(=O)O)O"
+chemical_name = "3-phenylpropanal"
+InChiKey = "YGCZTXZTJXYWCO-UHFFFAOYSA-N"
+#chemical_smiles = "CC(=O)OCCC1=CC=CC=C1"
 
 
     # Rhea enzyme output filter criteria
@@ -59,10 +59,10 @@ reviewed= "true"
 
 
     # file where I'm storing info on all chemicals included in Rhea
-# rhea_chemDB = "data/all_rhea_chemicals.json"
-# make_chemDB(rhea_chemDB)
+# rhea_chemDB = "src/data/all_rhea_chemicals.json"
+# #make_chemDB(rhea_chemDB)
 # scores = query_chemDB(rhea_chemDB, chemical_smiles)
-# pprint(scores[0:5])
+# pprint(scores[0:8])
 
 
 chem2enzymes(InChiKey = InChiKey,
