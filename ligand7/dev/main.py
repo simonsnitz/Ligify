@@ -47,8 +47,8 @@ from src.query_chemDB import query_chemDB
 # InChiKey = "VZXPDPZARILFQX-BYPYZUCNSA-N"
 # chemical_smiles = "CC(=O)C=C"
 
-chemical_name = "3-phenylpropanal"
-InChiKey = "YGCZTXZTJXYWCO-UHFFFAOYSA-N"
+chemical_name = "taurine"
+InChiKey = "XOAAWQZATWQOTB-UHFFFAOYSA-N"
 #chemical_smiles = "CC(=O)OCCC1=CC=CC=C1"
 
 
