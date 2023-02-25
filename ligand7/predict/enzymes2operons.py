@@ -109,14 +109,14 @@ def protein2chemicals(accession: str):
 
 
 
-def pull_regulators(ligand):
+def pull_regulators(data):
 
 
     regulator = re.compile(r"regulator|repressor|activator")
 
     reg_data = []
 
-    for rxn in ligand["rxn_data"]:
+    for rxn in data["rxn_data"]:
         for protein in rxn["proteins"]:
             ligand_names = []
             ligand_CheBIs = []
@@ -128,22 +128,22 @@ def pull_regulators(ligand):
                             if regulator.search(gene["description"]):
 
                                 entry = {   "refseq": gene["accession"],
-                                            "organism": protein["organism"][-2]+", "+protein["organism"][-1],
-                                            #"".join([i for i in protein["organism"]]),
-                                            "description": gene["description"]
+                                            "annotation": gene["description"],
+                                            "protein": protein,
+                                            "equation": rxn["equation"],
+                                            "rhea_id": rxn["rhea_id"]
                                             }
                                 reg_data.append(entry)
 
-                                # print(gene["accession"])
-                                # print(protein["enzyme"])
-                                # for gene in operon:
-                                #     protein_data = protein2chemicals(gene["accession"])
-                                #     if isinstance(protein_data, dict):
-                                #         if "catalysis" in protein_data.keys():
-                                #             ligand_names += protein_data["catalysis"].split(" ")
-            # if len(ligand_names) > 0:
-            #     print(list(set(ligand_names)))
-            #     print("\n")
+                                for gene in operon:
+                                    protein_data = protein2chemicals(gene["accession"])
+                                    if isinstance(protein_data, dict):
+                                        if "catalysis" in protein_data.keys():
+                                            ligand_names += protein_data["catalysis"].split(" ")
+            if len(ligand_names) > 0:
+                unique_ligands = list(set(ligand_names))
+                reg_data.append({"alt_ligands": unique_ligands})
+                
     return reg_data
 
 

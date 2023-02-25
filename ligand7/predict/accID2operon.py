@@ -68,6 +68,7 @@ def acc2MetaData(access_id: str):
 
 
 
+
 def NC2genome(NCacc):
     response = requests.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id='+NCacc+'&rettype=fasta_cds_aa')
 
@@ -77,12 +78,14 @@ def NC2genome(NCacc):
         #with open('temp/genome.txt', mode='w+') as f:
             f.write(data)
     else:
-        print('bad request')
+        print('genome fetch failed')
     
     with open('ligand7/predict/temp/genome.txt', mode='r+') as f:
     #with open('temp/genome.txt', mode='r+') as f:
         genome = f.readlines()
     return genome
+
+
 
 
 
@@ -233,6 +236,7 @@ def acc2genome(acc: str):
 
 
 def acc2operon(accession):
+
     metaData = acc2MetaData(accession)
     if metaData != "EMPTY":
         genome = NC2genome(metaData["accver"])
@@ -241,6 +245,7 @@ def acc2operon(accession):
             reg = fasta2MetaData(allGenes[index])
             operon, regIndex = getOperon(allGenes, index, reg['start'], reg['direction'])
             data = {"operon": operon, "enzyme_index": regIndex, "genome": metaData["accver"] }
+            
             return data
         else:
             return "EMPTY"
@@ -250,6 +255,9 @@ def acc2operon(accession):
 
 if __name__ == "__main__":
     
-    pprint(acc2operon("WP_187140699.1"))
+    #acc2operon("WP_187140699.1")
 
     #acc2genome("WP_003080639.1")
+
+    g1 = NC2genome("NC_008497.1")
+
