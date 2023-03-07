@@ -25,8 +25,8 @@ def get_inchiKey(input, prop):
 
 
 if __name__ == "__main__":
-    out = get_inchiKey("acrylate", "name")
+    out = get_inchiKey("isovalerate", "name")
     print(out)
 
-    out = get_inchiKey("C=CC(=O)[O-]", "smiles")
-    print(out)
+    # out = get_inchiKey("C=CC(=O)[O-]", "smiles")
+    # print(out)
