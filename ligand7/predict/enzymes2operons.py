@@ -109,7 +109,7 @@ def protein2chemicals(accession: str):
 
 
 
-def pull_regulators(data):
+def pull_regulators(data, chemical_name):
 
 
     regulator = re.compile(r"regulator|repressor|activator")
@@ -119,7 +119,6 @@ def pull_regulators(data):
     for rxn in data["rxn_data"]:
         for protein in rxn["proteins"]:
             ligand_names = []
-            ligand_CheBIs = []
             if "context" in protein.keys():
                 if protein["context"] != "EMPTY":
                     operon = protein["context"]["operon"]
@@ -127,22 +126,24 @@ def pull_regulators(data):
                         if "description" in gene.keys():
                             if regulator.search(gene["description"]):
 
-                                entry = {   "refseq": gene["accession"],
-                                            "annotation": gene["description"],
-                                            "protein": protein,
-                                            "equation": rxn["equation"],
-                                            "rhea_id": rxn["rhea_id"]
-                                            }
-                                reg_data.append(entry)
-
                                 for gene in operon:
                                     protein_data = protein2chemicals(gene["accession"])
                                     if isinstance(protein_data, dict):
                                         if "catalysis" in protein_data.keys():
                                             ligand_names += protein_data["catalysis"].split(" ")
-            if len(ligand_names) > 0:
-                unique_ligands = list(set(ligand_names))
-                reg_data.append({"alt_ligands": unique_ligands})
+                                unique_ligands = list(set(ligand_names))
+                                not_ligands = ["H2O", "+", "-", "=", "A", "AH2", "H(+)", "NADPH", "NADH", "NADP(+)", "NAD(+)", str(chemical_name).lower()]
+                                unique_ligands = [ i for i in unique_ligands if i not in not_ligands]
+
+                                entry = {   "refseq": gene["accession"],
+                                            "annotation": gene["description"],
+                                            "protein": protein,
+                                            "equation": rxn["equation"],
+                                            "rhea_id": rxn["rhea_id"],
+                                            "alt_ligands": unique_ligands
+                                            }
+                                reg_data.append(entry)
+
                 
     return reg_data
 

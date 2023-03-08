@@ -3,6 +3,7 @@ import sys
 import pandas as pd
 import os
 import json
+from pprint import pprint
 
 from ligand7 import __version__ as ligand7_version
 from ligand7.predict.pubchem import get_inchiKey
@@ -50,6 +51,59 @@ def make_clickable(text):
     return f'<a target="_blank" href="{link}">{text}</a>'
 
 
+def display_data(regulators):
+
+    for i in range(0, len(regulators)):
+        with st.expander(regulators[i]["refseq"]):
+
+            reg = regulators[i]["protein"]
+
+
+
+                #Sensor info
+            sensor = [
+                        "https://www.ncbi.nlm.nih.gov/protein/"+str(regulators[i]["refseq"]), 
+                        regulators[i]["annotation"],
+                        ", ".join(reg["organism"])[:-2] 
+                    ]
+            sensor_columns = ["RefSeq link", "Annotation",  "Organism"]
+
+            s_df = pd.DataFrame(sensor, index= sensor_columns)
+            s_df.columns = ["Regulator information"]
+
+            st.dataframe(s_df, width=700)
+
+
+
+                #Enzyme info
+            enzyme = [
+                        regulators[i]["equation"],
+                        regulators[i]["rhea_id"], 
+                        reg["enzyme"]["description"],
+                        "https://www.uniprot.org/uniprotkb/"+str(reg["enzyme"]["uniprot_id"])
+                        ]
+            enzyme_columns = ["Reaction", "Rhea ID", "Annotation", "Uniprot link"]
+
+            for ref in range(0,len(reg["enzyme"]["dois"])):
+                link = "https://doi.org/"+str(reg["enzyme"]["dois"][ref])
+                text = "Reference "+str(ref+1)
+                enzyme.append(link)
+                enzyme_columns.append(text)
+
+            e_df = pd.DataFrame(enzyme, index= enzyme_columns)
+            e_df.columns = ["Enzyme information"]
+            st.dataframe(e_df, width=700)
+
+
+            alt_ligands = [lig for lig in regulators[i]["alt_ligands"]]
+            l_df = pd.DataFrame(alt_ligands, columns=["Alternative ligand name"])
+            st.dataframe(l_df, width=700)
+
+
+
+
+
+
 def run_streamlit():
 
     setup_page()
@@ -72,91 +126,48 @@ def run_streamlit():
             my_bar = st.progress(0, text="Fetching enzymes ...")
 
             st.write("InchiKey: "+str(InChiKey))
-            # if os.path.exists("./ligand7/temp/data.json"):
-            #     with open("./ligand7/temp/data.json", "r") as f:
-            #         regulators = json.load(f)
-            #         print("loaded cached reg data")
-
-            # else:
-
-            data = chem2enzymes(InChiKey = InChiKey,
-                domain_filter = domain_filter,
-                lineage_filter_name = lineage_filter_name, 
-                reviewed_bool = reviewed)
-
-            my_bar.progress(40, text="Fetching operons ...")
-
-            data = append_operons(data, chemical_name)
-
-            my_bar.progress(95, text="Fetching regulators ...")
-
-
-            if data == None:
-                st.write("No regulators found")
             
+            if os.path.exists("./ligand7/temp/"+str(chemical_name)+".json"):
+                with open("./ligand7/temp/"+str(chemical_name)+".json", "r") as f:
+                    regulators = json.load(f)
+                    print("loaded cached reg data")
+
+                    display_data(regulators)
+
             else:
 
-                regulators = pull_regulators(data)
-                print(regulators)
+                data = chem2enzymes(InChiKey = InChiKey,
+                    domain_filter = domain_filter,
+                    lineage_filter_name = lineage_filter_name, 
+                    reviewed_bool = reviewed)
+
+                my_bar.progress(40, text="Fetching operons ...")
+
+                data = append_operons(data, chemical_name)
+
+                my_bar.progress(95, text="Fetching regulators ...")
 
 
-                if regulators == None or len(regulators) == 0:
+                if data == None:
                     st.write("No regulators found")
-
-
+                
                 else:
 
-                        #with open("./ligand7/temp/data.json", "w+") as f:
-                            #f.write(json.dumps(regulators))
-                            #print("cached regulator data")
+                    regulators = pull_regulators(data, chemical_name)
+                    
+                    with open("./ligand7/temp/"+str(chemical_name)+".json", "w+") as f:
+                        f.write(json.dumps(regulators))
+                        print("cached regulator data")
 
 
-                    for i in range(0, len(regulators)):
-                        with st.expander(regulators[i]["refseq"]):
-
-                            reg = regulators[i]["protein"]
+                    if regulators == None or len(regulators) == 0:
+                        st.write("No regulators found")
 
 
-
-                                #Sensor info
-                            sensor = [
-                                        "https://www.ncbi.nlm.nih.gov/protein/"+str(regulators[i]["refseq"]), 
-                                        regulators[i]["annotation"],
-                                        ", ".join(reg["organism"])[:-2] 
-                                    ]
-                            sensor_columns = ["RefSeq link", "Annotation",  "Organism"]
-
-                            s_df = pd.DataFrame(sensor, index= sensor_columns)
-                            s_df.columns = ["Regulator information"]
-
-                            st.dataframe(s_df, width=700)
+                    else:
+                        display_data(regulators)
 
 
-
-                                #Enzyme info
-                            enzyme = [
-                                        regulators[i]["equation"],
-                                        regulators[i]["rhea_id"], 
-                                        reg["enzyme"]["description"],
-                                        "https://www.uniprot.org/uniprotkb/"+str(reg["enzyme"]["uniprot_id"])
-                                        ]
-                            enzyme_columns = ["Reaction", "Rhea ID", "Annotation", "Uniprot link"]
-
-                            for ref in range(0,len(reg["enzyme"]["dois"])):
-                                link = "https://doi.org/"+str(reg["enzyme"]["dois"][ref])
-                                text = "Reference "+str(ref+1)
-                                enzyme.append(link)
-                                enzyme_columns.append(text)
-
-                            e_df = pd.DataFrame(enzyme, index= enzyme_columns)
-                            e_df.columns = ["Enzyme information"]
-                            st.dataframe(e_df, width=700)
-
-
-
-                                # Alternative ligands
-                            alt_ligands = []
-                            ligand_columns = []
-                
+                    
             my_bar.progress(100, text="Complete.")
 
