@@ -5,10 +5,10 @@ import os
 import json
 from pprint import pprint
 
-from ligand7 import __version__ as ligand7_version
-from ligand7.predict.pubchem import get_inchiKey
-from ligand7.predict.chemical2enzymes import chem2enzymes
-from ligand7.predict.enzymes2operons import append_operons, pull_regulators
+from ligify import __version__ as ligify_version
+from ligify.predict.pubchem import get_inchiKey
+from ligify.predict.chemical2enzymes import chem2enzymes
+from ligify.predict.enzymes2operons import append_operons, pull_regulators
 
 def setup_page():
     
@@ -24,7 +24,7 @@ def setup_page():
 
     st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-    st.markdown(f'<div style="text-align: right; font-size: 0.9em"> {ligand7_version} </div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="text-align: right; font-size: 0.9em"> {ligify_version} </div>', unsafe_allow_html=True)
 
 
 
@@ -214,8 +214,8 @@ def run_ligify(regulator_column, progress, chemical_name, filters):
 
     # col1.write("InchiKey: "+str(InChiKey))
     
-    if os.path.exists("./ligand7/temp/"+str(chemical_name)+".json"):
-        with open("./ligand7/temp/"+str(chemical_name)+".json", "r") as f:
+    if os.path.exists("./ligify/temp/"+str(chemical_name)+".json"):
+        with open("./ligify/temp/"+str(chemical_name)+".json", "r") as f:
             regulators = json.load(f)
             print("loaded cached reg data")
 
@@ -243,7 +243,7 @@ def run_ligify(regulator_column, progress, chemical_name, filters):
 
     #         regulators = pull_regulators(data, chemical_name)
             
-    #         with open("./ligand7/temp/"+str(chemical_name)+".json", "w+") as f:
+    #         with open("./ligify/temp/"+str(chemical_name)+".json", "w+") as f:
     #             f.write(json.dumps(regulators))
     #             print("cached regulator data")
 

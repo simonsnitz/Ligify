@@ -74,13 +74,13 @@ def NC2genome(NCacc):
 
     if response.ok:
         data = response.text
-        with open('ligand7/predict/temp/genome.txt', mode='w+') as f:
+        with open('ligify/predict/temp/genome.txt', mode='w+') as f:
         #with open('temp/genome.txt', mode='w+') as f:
             f.write(data)
     else:
         print('genome fetch failed')
     
-    with open('ligand7/predict/temp/genome.txt', mode='r+') as f:
+    with open('ligify/predict/temp/genome.txt', mode='r+') as f:
     #with open('temp/genome.txt', mode='r+') as f:
         genome = f.readlines()
     return genome

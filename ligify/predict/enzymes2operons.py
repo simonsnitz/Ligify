@@ -4,7 +4,7 @@ import requests
 import pandas as pd
 from pprint import pprint
 
-from ligand7.predict.accID2operon import acc2operon
+from ligify.predict.accID2operon import acc2operon
 #from accID2operon import acc2operon
 
 def append_operons(data, chemical_name):
