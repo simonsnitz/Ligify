@@ -3,7 +3,7 @@ import click
 import streamlit.web.cli
 import sys
 
-from ligand7.streamlit_app import run_streamlit
+from ligify.streamlit_app import run_streamlit
 
 
 def streamlit_run():
