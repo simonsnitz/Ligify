@@ -11,7 +11,8 @@ from ligand7.predict.chemical2enzymes import chem2enzymes
 from ligand7.predict.enzymes2operons import append_operons, pull_regulators
 
 def setup_page():
-    st.set_page_config(page_title="Ligand7", layout='centered', initial_sidebar_state='auto')
+    
+    st.set_page_config(page_title="Ligify", layout='wide', initial_sidebar_state='auto')
     sys.tracebacklimit = 0 #removes traceback so code is not shown during errors
 
     hide_streamlit_style = '''
@@ -25,8 +26,7 @@ def setup_page():
 
     st.markdown(f'<div style="text-align: right; font-size: 0.9em"> {ligand7_version} </div>', unsafe_allow_html=True)
 
-    st.subheader('Predict sensors responsive to an input ligand')
-    sidebar = st.sidebar.empty()
+
 
     #this removes the full-screen button for various elements
     style_fullscreen_button_css = """
@@ -44,11 +44,24 @@ def setup_page():
         unsafe_allow_html=True,
     )
 
-def make_clickable(text):
-    # target _blank to open new window
-    # extract clickable text to display for your link
-    link = "https://www.ncbi.nlm.nih.gov/protein/"+str(text)
-    return f'<a target="_blank" href="{link}">{text}</a>'
+    # Remove border around the form
+    css = r'''
+        <style>
+            [data-testid="stForm"] {border: 0px}
+        </style>
+    '''
+
+    st.markdown(css, unsafe_allow_html=True)
+
+
+    title_alignment="""
+        <style>
+        #the-title {
+        text-align: center
+        }
+        </style>
+        """
+    st.markdown(title_alignment, unsafe_allow_html=True)
 
 
 def display_data(regulators):
@@ -104,70 +117,147 @@ def display_data(regulators):
 
 
 
+
+
+
+
+
 def run_streamlit():
 
     setup_page()
 
+
+
+
+
+    # #Create and name sidebar
+    # st.sidebar.header('Advanced parameters')
+
+    # def advanced_options():
+    #     lineage_filter_name = st.sidebar.select_slider("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "None"], value="Family")
+    #     reviewed = st.sidebar.checkbox("Reviewed?", value=True)
+
+    # domain_filter = "Bacteria"
+    # # lineage_filter_name = st.select_slider("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "None"], value="Family")
+    # reviewed = st.checkbox("Reviewed?", value=True)
+
+
+    # options = st.container()
+    # options_input = options.expander("advanced options")
+
+
+    # output = st.container()
     
-    with st.form("my_form"):
-        chemical_name = st.text_input("Chemical name", "Isovalerate")
-        InChiKey = get_inchiKey(str(chemical_name), "name")
-        # print(chemical_name)
-        # print(InChiKey)
-        domain_filter = "Bacteria"
-        lineage_filter_name = st.select_slider("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "None"], value="Family")
+
+
+
+
+    # col1.form("my_form")
+
+
+    # HEADER
+    head = st.container()
+    head1, head2, head3 = head.columns(3)
+
+    head2.markdown("<h1 style='text-align: center; color: black;'>Ligify</h1>", unsafe_allow_html=True)
+
+    head2.subheader('Predict sensors responsive to an input ligand')
+    chemical_name = head2.text_input("Chemical name", "Acrylate")
+
+
+    # OPTIONS
+    options = st.container()
+    col1, col2, col3 = options.columns((1,3,1))
+
+    with col2.expander("Advanced options"):
+
         reviewed = st.checkbox("Reviewed?", value=True)
+        lineage_filter_name = st.select_slider("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "None"], value="Family")
+        max_entries = st.number_input("Max number of entries surveyed", value=25)
+        filters = {"reviewed": reviewed, "lineage": lineage_filter_name, "max_entries": max_entries}
 
 
-        # Every form must have a submit button.
-        submitted = st.form_submit_button("Submit")
+    # RESULTS
+    results = st.container()
+    regulator_column, data = results.columns([1,3])
+
+
+    # FORM
+    with st.form('ligify'):
+        submit = st.container()
+        submit_spacer_1, submit_button, submit_spacer_2 = submit.columns([5,1,5])
+
+        submitted = submit_button.form_submit_button("Submit", use_container_width=True)
         if submitted:
-            st.spinner("Processing")
-            my_bar = st.progress(0, text="Fetching enzymes ...")
+    
+            # submit_spacer_1.write("stuff")
+            progress = st.container()
+            prog_spacerL, prog, prog_spacerR = progress.columns([1,3,1])
 
-            st.write("InchiKey: "+str(InChiKey))
+            run_ligify(regulator_column, prog, chemical_name, filters)
+
+
+
+
+
+
+
+
+
+
+def run_ligify(regulator_column, progress, chemical_name, filters):
+
+    InChiKey = get_inchiKey(str(chemical_name), "name")
+
+    st.spinner("Processing")
+    my_bar = progress.progress(0, text="Fetching enzymes ...")
+
+    # col1.write("InchiKey: "+str(InChiKey))
+    
+    if os.path.exists("./ligand7/temp/"+str(chemical_name)+".json"):
+        with open("./ligand7/temp/"+str(chemical_name)+".json", "r") as f:
+            regulators = json.load(f)
+            print("loaded cached reg data")
+
+            display_data(regulators)
+
+    # else:
+    # if 1 == 1:
+
+    #     data = chem2enzymes(InChiKey = InChiKey,
+    #         domain_filter = "Bacteria",
+    #         lineage_filter_name = filters["lineage"], 
+    #         reviewed_bool = filters["reviewed"])
+
+    #     my_bar.progress(40, text="Fetching operons ...")
+
+    #     data = append_operons(data, chemical_name)
+
+    #     my_bar.progress(95, text="Fetching regulators ...")
+
+
+    #     if data == None:
+    #         col1.write("No regulators found")
+        
+    #     else:
+
+    #         regulators = pull_regulators(data, chemical_name)
             
-            if os.path.exists("./ligand7/temp/"+str(chemical_name)+".json"):
-                with open("./ligand7/temp/"+str(chemical_name)+".json", "r") as f:
-                    regulators = json.load(f)
-                    print("loaded cached reg data")
-
-                    display_data(regulators)
-
-            else:
-
-                data = chem2enzymes(InChiKey = InChiKey,
-                    domain_filter = domain_filter,
-                    lineage_filter_name = lineage_filter_name, 
-                    reviewed_bool = reviewed)
-
-                my_bar.progress(40, text="Fetching operons ...")
-
-                data = append_operons(data, chemical_name)
-
-                my_bar.progress(95, text="Fetching regulators ...")
+    #         with open("./ligand7/temp/"+str(chemical_name)+".json", "w+") as f:
+    #             f.write(json.dumps(regulators))
+    #             print("cached regulator data")
 
 
-                if data == None:
-                    st.write("No regulators found")
-                
-                else:
-
-                    regulators = pull_regulators(data, chemical_name)
-                    
-                    with open("./ligand7/temp/"+str(chemical_name)+".json", "w+") as f:
-                        f.write(json.dumps(regulators))
-                        print("cached regulator data")
+    #         if regulators == None or len(regulators) == 0:
+    #             col1.write("No regulators found")
 
 
-                    if regulators == None or len(regulators) == 0:
-                        st.write("No regulators found")
+    #         else:
+    #             display_data(regulators)
 
 
-                    else:
-                        display_data(regulators)
+            
+    my_bar.progress(100, text="Complete.")
 
 
-                    
-            my_bar.progress(100, text="Complete.")
-
+            

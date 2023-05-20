@@ -21,14 +21,17 @@ def append_operons(data, chemical_name):
         pass
 
     else:
+        counter = 0
         for rxn in range(0,len(ligand["rxn_data"])):
             for i in range(0, len(ligand["rxn_data"][rxn]["proteins"])):
                 protein = ligand["rxn_data"][rxn]["proteins"][i]
                 ncbi_id = protein["enzyme"]["ncbi_id"]
                 if ncbi_id != None:
-                    context = acc2operon(ncbi_id)
-                    protein["context"] = context
-                    print("fetched context")
+                    if counter <= 25:
+                        context = acc2operon(ncbi_id)
+                        protein["context"] = context
+                        print("fetched context")
+                        counter += 1
         
         return ligand
 
@@ -126,6 +129,13 @@ def pull_regulators(data, chemical_name):
                         if "description" in gene.keys():
                             if regulator.search(gene["description"]):
 
+                                entry = {   "refseq": gene["accession"],
+                                            "annotation": gene["description"],
+                                            "protein": protein,
+                                            "equation": rxn["equation"],
+                                            "rhea_id": rxn["rhea_id"],
+                                            }
+
                                 for gene in operon:
                                     protein_data = protein2chemicals(gene["accession"])
                                     if isinstance(protein_data, dict):
@@ -135,13 +145,8 @@ def pull_regulators(data, chemical_name):
                                 not_ligands = ["H2O", "+", "-", "=", "A", "AH2", "H(+)", "NADPH", "NADH", "NADP(+)", "NAD(+)", str(chemical_name).lower()]
                                 unique_ligands = [ i for i in unique_ligands if i not in not_ligands]
 
-                                entry = {   "refseq": gene["accession"],
-                                            "annotation": gene["description"],
-                                            "protein": protein,
-                                            "equation": rxn["equation"],
-                                            "rhea_id": rxn["rhea_id"],
-                                            "alt_ligands": unique_ligands
-                                            }
+                                entry['alt_ligands'] = unique_ligands
+
                                 reg_data.append(entry)
 
                 
@@ -150,11 +155,15 @@ def pull_regulators(data, chemical_name):
 
 if __name__ == "__main__":
 
-    with open("temp/acrylate.json", "r") as f:
-        data = json.load(f)
+    with open("temp/all.json", "r") as f:
+        all_chemicals = json.load(f)
 
-        regs = pull_regulators(data)
+        for chemical in all_chemicals:
+            print(chemical)
+            # data = json.load(f)
 
-        #print(regs)
-        d = pd.DataFrame(regs)
-        print(d)
+            # regs = pull_regulators(data)
+
+            # #print(regs)
+            # d = pd.DataFrame(regs)
+            # print(d)
