@@ -1,9 +1,12 @@
 import streamlit as st
+from PIL import Image
 import sys 
 import pandas as pd
 import os
 import json
 from pprint import pprint
+
+import deepchem as dc
 
 from ligify import __version__ as ligify_version
 from ligify.predict.pubchem import get_inchiKey
@@ -64,56 +67,137 @@ def setup_page():
     st.markdown(title_alignment, unsafe_allow_html=True)
 
 
-def display_data(regulators):
 
-    for i in range(0, len(regulators)):
-        with st.expander(regulators[i]["refseq"]):
+    # Initialize state variables
+    if "data" not in st.session_state:
+        st.session_state.data = ""
 
-            reg = regulators[i]["protein"]
+    if "reg" not in st.session_state:
+        st.session_state.reg = False
+
+
+
+
+def format_display(data_column):
+
+    if len(st.session_state.data) > 1:
+
+        # Regulator info
+        refseq = st.session_state.data['refseq']
+        annotation = st.session_state.data['annotation'] 
+
+        # Enzyme info
+        enz_annotation = st.session_state.data['protein']['enzyme']['description']
+        enz_uniprot = st.session_state.data['protein']['enzyme']['uniprot_id']
+        enz_refseq = st.session_state.data['protein']['enzyme']['ncbi_id']
+        equation = st.session_state.data['equation'] 
+        rhea_id = st.session_state.data['rhea_id'] 
+
+        enz_json = {"name": "associated enzyme attribute",
+                    "annotation": enz_annotation,
+                    "equation": equation,
+                    "uniprot": enz_uniprot,
+                    "refseq": enz_refseq,
+                    "rhea_id": rhea_id}
+
+        # Organism info
+        genome_id = st.session_state.data['protein']['context']['genome'] 
+        kingdom = st.session_state.data['protein']['organism'][0]
+        phylum = st.session_state.data['protein']['organism'][1]
+        org_class = st.session_state.data['protein']['organism'][2]
+        order = st.session_state.data['protein']['organism'][3]
+        family = st.session_state.data['protein']['organism'][4]
+        genus = st.session_state.data['protein']['organism'][5]
+
+        org_json = {"name": "organism attribute",
+                    "genome_id": genome_id,
+                    "kingdom": kingdom,
+                    "phylum": phylum,
+                    "class": org_class,
+                    "order": order,
+                    "family": family,
+                    "genus": genus}
+
+
+
+        data_column.markdown(f'<h1 style="text-align: center; color: black;">{refseq}</h1>', unsafe_allow_html=True)
+        data_column.markdown(f'<h3 style="text-align: center; color: black;">{annotation}</h3>', unsafe_allow_html=True)
+
+
+        smiles = "CCC(=O)OCC"
+        data_column.image(
+            f'http://hulab.rxnfinder.org/smi2img/{smiles}/', width=400)
+
+        data_column.divider()
+
+        enzyme_and_org = data_column.container()
+        enz, org = enzyme_and_org.columns([1,1])
+
+        enz_df = pd.DataFrame(enz_json, index=[0])
+        enz_df.set_index("name", inplace=True)
+        enz_df = enz_df.T
+        enz.table(enz_df)
+
+        org_df = pd.DataFrame(org_json, index=[0])
+        org_df.set_index("name", inplace=True)
+        org_df = org_df.T
+        org.table(org_df)
+
+
+
+
+        data_column.write(st.session_state.data)
+
+
+
+        # with st.expander(regulators[i]["refseq"]):
+
+        #     reg = regulators[i]["protein"]
 
 
 
                 #Sensor info
-            sensor = [
-                        "https://www.ncbi.nlm.nih.gov/protein/"+str(regulators[i]["refseq"]), 
-                        regulators[i]["annotation"],
-                        ", ".join(reg["organism"])[:-2] 
-                    ]
-            sensor_columns = ["RefSeq link", "Annotation",  "Organism"]
+            # sensor = [
+            #             "https://www.ncbi.nlm.nih.gov/protein/"+str(regulators[i]["refseq"]), 
+            #             regulators[i]["annotation"],
+            #             ", ".join(reg["organism"])[:-2] 
+            #         ]
+            # sensor_columns = ["RefSeq link", "Annotation",  "Organism"]
 
-            s_df = pd.DataFrame(sensor, index= sensor_columns)
-            s_df.columns = ["Regulator information"]
+            # s_df = pd.DataFrame(sensor, index= sensor_columns)
+            # s_df.columns = ["Regulator information"]
 
-            st.dataframe(s_df, width=700)
-
-
-
-                #Enzyme info
-            enzyme = [
-                        regulators[i]["equation"],
-                        regulators[i]["rhea_id"], 
-                        reg["enzyme"]["description"],
-                        "https://www.uniprot.org/uniprotkb/"+str(reg["enzyme"]["uniprot_id"])
-                        ]
-            enzyme_columns = ["Reaction", "Rhea ID", "Annotation", "Uniprot link"]
-
-            for ref in range(0,len(reg["enzyme"]["dois"])):
-                link = "https://doi.org/"+str(reg["enzyme"]["dois"][ref])
-                text = "Reference "+str(ref+1)
-                enzyme.append(link)
-                enzyme_columns.append(text)
-
-            e_df = pd.DataFrame(enzyme, index= enzyme_columns)
-            e_df.columns = ["Enzyme information"]
-            st.dataframe(e_df, width=700)
-
-
-            alt_ligands = [lig for lig in regulators[i]["alt_ligands"]]
-            l_df = pd.DataFrame(alt_ligands, columns=["Alternative ligand name"])
-            st.dataframe(l_df, width=700)
+            # st.dataframe(s_df, width=700)
 
 
 
+            #     #Enzyme info
+            # enzyme = [
+            #             regulators[i]["equation"],
+            #             regulators[i]["rhea_id"], 
+            #             reg["enzyme"]["description"],
+            #             "https://www.uniprot.org/uniprotkb/"+str(reg["enzyme"]["uniprot_id"])
+            #             ]
+            # enzyme_columns = ["Reaction", "Rhea ID", "Annotation", "Uniprot link"]
+
+            # for ref in range(0,len(reg["enzyme"]["dois"])):
+            #     link = "https://doi.org/"+str(reg["enzyme"]["dois"][ref])
+            #     text = "Reference "+str(ref+1)
+            #     enzyme.append(link)
+            #     enzyme_columns.append(text)
+
+            # e_df = pd.DataFrame(enzyme, index= enzyme_columns)
+            # e_df.columns = ["Enzyme information"]
+            # st.dataframe(e_df, width=700)
+
+
+            # alt_ligands = [lig for lig in regulators[i]["alt_ligands"]]
+            # l_df = pd.DataFrame(alt_ligands, columns=["Alternative ligand name"])
+            # st.dataframe(l_df, width=700)
+
+
+def callback():
+    st.session_state.CONNECTED = True
 
 
 
@@ -127,42 +211,21 @@ def run_streamlit():
     setup_page()
 
 
+    if 'CONNECTED' not in st.session_state:
+        st.session_state.CONNECTED =  False
 
-
-
-    # #Create and name sidebar
-    # st.sidebar.header('Advanced parameters')
-
-    # def advanced_options():
-    #     lineage_filter_name = st.sidebar.select_slider("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "None"], value="Family")
-    #     reviewed = st.sidebar.checkbox("Reviewed?", value=True)
-
-    # domain_filter = "Bacteria"
-    # # lineage_filter_name = st.select_slider("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "None"], value="Family")
-    # reviewed = st.checkbox("Reviewed?", value=True)
-
-
-    # options = st.container()
-    # options_input = options.expander("advanced options")
-
-
-    # output = st.container()
-    
-
-
-
-
-    # col1.form("my_form")
+    def _connect_form_cb(connect_status):
+        st.session_state.CONNECTED = connect_status
 
 
     # HEADER
     head = st.container()
     head1, head2, head3 = head.columns(3)
-
     head2.markdown("<h1 style='text-align: center; color: black;'>Ligify</h1>", unsafe_allow_html=True)
-
     head2.subheader('Predict sensors responsive to an input ligand')
     chemical_name = head2.text_input("Chemical name", "Acrylate")
+
+
 
 
     # OPTIONS
@@ -177,49 +240,53 @@ def run_streamlit():
         filters = {"reviewed": reviewed, "lineage": lineage_filter_name, "max_entries": max_entries}
 
 
-    # RESULTS
-    results = st.container()
-    regulator_column, data = results.columns([1,3])
 
 
     # FORM
-    with st.form('ligify'):
+    with st.form(key='ligify'):
+
+        # SUBMIT BUTTON
         submit = st.container()
         submit_spacer_1, submit_button, submit_spacer_2 = submit.columns([5,1,5])
+        submitted = submit_button.form_submit_button("Submit", use_container_width=True, on_click=_connect_form_cb, args=(True,))
 
-        submitted = submit_button.form_submit_button("Submit", use_container_width=True)
-        if submitted:
-    
-            # submit_spacer_1.write("stuff")
-            progress = st.container()
-            prog_spacerL, prog, prog_spacerR = progress.columns([1,3,1])
+        # PROGRESS BAR
+        progress = st.container()
+        prog_spacerL, prog, prog_spacerR = progress.columns([1,3,1])
 
-            run_ligify(regulator_column, prog, chemical_name, filters)
-
-
-
-
+        # RESULTS
+        results = st.container()
+        regulator_column, data_column = results.columns([1,3])
+        # data_column.write(st.session_state.data)
+        format_display(data_column)
 
 
-
+        return regulator_column, data_column, prog, chemical_name, filters
 
 
 
-def run_ligify(regulator_column, progress, chemical_name, filters):
 
-    InChiKey = get_inchiKey(str(chemical_name), "name")
 
-    st.spinner("Processing")
-    my_bar = progress.progress(0, text="Fetching enzymes ...")
 
-    # col1.write("InchiKey: "+str(InChiKey))
-    
-    if os.path.exists("./ligify/temp/"+str(chemical_name)+".json"):
-        with open("./ligify/temp/"+str(chemical_name)+".json", "r") as f:
-            regulators = json.load(f)
-            print("loaded cached reg data")
 
-            display_data(regulators)
+def run_ligify(regulator_column, data_column, progress, chemical_name, filters):
+
+    if st.session_state.CONNECTED:
+
+
+        InChiKey = get_inchiKey(str(chemical_name), "name")
+
+        st.spinner("Processing")
+        my_bar = progress.progress(0, text="Fetching enzymes ...")
+
+        # col1.write("InchiKey: "+str(InChiKey))
+        
+        if os.path.exists("./ligify/temp/"+str(chemical_name)+".json"):
+            with open("./ligify/temp/"+str(chemical_name)+".json", "r") as f:
+                regulators = json.load(f)
+                print("loaded cached reg data")
+
+                display_data(regulators, regulator_column)
 
     # else:
     # if 1 == 1:
@@ -257,7 +324,26 @@ def run_ligify(regulator_column, progress, chemical_name, filters):
 
 
             
-    my_bar.progress(100, text="Complete.")
+        my_bar.progress(100, text="Complete.")
 
 
-            
+def show_reg(data):
+    st.session_state.data = data
+    st.experimental_rerun()
+
+
+
+
+def display_data(regulators, regulator_column):
+
+
+    for i in range(0, len(regulators)):
+        name = "var"+str(i)
+        name = regulator_column.form_submit_button(regulators[i]['refseq'])
+        if name:
+            show_reg(regulators[i])
+
+
+
+
+
