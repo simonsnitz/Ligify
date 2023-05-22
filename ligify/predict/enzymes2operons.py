@@ -2,7 +2,6 @@ import json
 import re
 import requests
 import pandas as pd
-from pprint import pprint
 
 from ligify.predict.accID2operon import acc2operon
 #from accID2operon import acc2operon

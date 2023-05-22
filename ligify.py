@@ -1,5 +1,4 @@
 
-import click
 import streamlit.web.cli
 import sys
 
