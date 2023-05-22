@@ -79,7 +79,7 @@ cookieSecret = "e95070f37458bc01a700421e511d14f7452df3a1a3f428d434fd127517277629
 
 # If false, will attempt to open a browser window on start.
 # Default: false unless (1) we are on a Linux box where DISPLAY is unset, or (2) server.liveSave is set.
-headless = false
+headless = true
 
 # Automatically rerun script when the file is modified on disk.
 # Default: false
