@@ -57,6 +57,9 @@ fixMatplotlib = true
 
 base="light"
 
+# Primary accent for interactive elements
+primaryColor = '#5c84fa'
+
 [server]
 
 # List of folders that should not be watched for changes. This impacts both "Run on Save" and @st.cache.
