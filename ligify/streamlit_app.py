@@ -1,12 +1,7 @@
 import streamlit as st
-from PIL import Image
 import sys 
 import pandas as pd
-import os
-import json
-from pprint import pprint
 
-import deepchem as dc
 
 from ligify import __version__ as ligify_version
 from ligify.predict.pubchem import get_inchiKey, get_smiles, check_url
@@ -75,11 +70,12 @@ def setup_page():
 
 def format_display(data_column):
 
-    if st.session_state.CONNECTED and not st.session_state.data:
+    if st.session_state.SUBMITTED and not st.session_state.data:
 
         select_container = data_column.container()
         select_spacerL, please_select, select_spacerR  = select_container.columns([1,2,1])
         please_select.subheader("Please select a regulator")
+
 
     elif st.session_state.data:
 
@@ -194,29 +190,31 @@ def format_display(data_column):
 
 
         # Spacer
-        data_column.text("")
-        data_column.text("")
+        # data_column.text("")
+        # data_column.text("")
 
+
+        # This takes too long to load. It's a 'nice to have' that's not worth the lag it creates.
 
         # Alternative ligands
             # This takes a while to load if there are a lot of ligands
-        alt_ligands = data_column.container()
-        alt_ligands.subheader("Possible alternative ligands")
-        a_ligands_smiles = []
-        a_ligands_names = []
+        # alt_ligands = data_column.container()
+        # alt_ligands.subheader("Possible alternative ligands")
+        # a_ligands_smiles = []
+        # a_ligands_names = []
         
-        for i in st.session_state.data['alt_ligands']:
-            try:
-                SMILES = get_smiles(str(i))
-                url = f'http://hulab.rxnfinder.org/smi2img/{SMILES}/'
-                if check_url(url):
-                    a_ligands_smiles.append(url)
-                    a_ligands_names.append(str(i))
-            except:
-                pass
+        # for i in st.session_state.data['alt_ligands']:
+        #     try:
+        #         SMILES = get_smiles(str(i))
+        #         url = f'http://hulab.rxnfinder.org/smi2img/{SMILES}/'
+        #         if check_url(url):
+        #             a_ligands_smiles.append(url)
+        #             a_ligands_names.append(str(i))
+        #     except:
+        #         pass
 
 
-        alt_ligands.image(a_ligands_smiles, width=200, caption= a_ligands_names)
+        # alt_ligands.image(a_ligands_smiles, width=200, caption= a_ligands_names)
 
 
 
@@ -237,15 +235,19 @@ def run_streamlit():
     setup_page()
 
 
+    # The below code really just sets up the input section at the top
+
+
     # Initialize state variables
     if "data" not in st.session_state:
         st.session_state.data = False
 
-    if 'CONNECTED' not in st.session_state:
-        st.session_state.CONNECTED =  False
+    if 'SUBMITTED' not in st.session_state:
+        st.session_state.SUBMITTED =  False
+
 
     def _connect_form_cb(connect_status):
-        st.session_state.CONNECTED = connect_status
+        st.session_state.SUBMITTED = connect_status
         st.session_state.data = False
 
 
@@ -265,9 +267,11 @@ def run_streamlit():
 
     with col2.expander("Advanced options"):
 
-        reviewed = st.checkbox("Reviewed?", value=True)
-        lineage_filter_name = st.select_slider("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "None"], value="Family")
-        max_entries = st.number_input("Max number of entries surveyed", value=25)
+        adv_options = st.container()
+        option1, option2, option3 = adv_options.columns((1,3,2))
+        reviewed = option1.checkbox("Reviewed only", value=True)
+        lineage_filter_name = option2.selectbox("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "None"], index=4)
+        max_entries = option3.number_input("Max number of entries surveyed", value=25)
         filters = {"reviewed": reviewed, "lineage": lineage_filter_name, "max_entries": max_entries}
 
 
@@ -293,7 +297,6 @@ def run_streamlit():
         results = st.container()
         regulator_column, data_column = results.columns([1,3])
 
-        format_display(data_column)
 
 
         return chem, regulator_column, data_column, prog, chemical_name, filters
@@ -303,87 +306,92 @@ def run_streamlit():
 
 
 
+@st.cache_data
+def fetch_data(chemical_name, InChiKey, filters):
+    # if os.path.exists("./ligify/temp/"+str(chemical_name)+".json"):
+    #     with open("./ligify/temp/"+str(chemical_name)+".json", "r") as f:
+    #         regulators = json.load(f)
+    #         print("loaded cached reg data")
+            
+    #     return regulators
+    
+    if 1 == 1:
+
+        prog_container = st.container()
+        prog_spacerL, prog, prog_spacerR = prog_container.columns((1,1,1))
+        st.spinner("Processing")
+        prog_bar = prog.progress(0, text="Fetching enzymes ...")
+
+        data = chem2enzymes(InChiKey = InChiKey,
+            domain_filter = "Bacteria",
+            lineage_filter_name = filters["lineage"], 
+            reviewed_bool = filters["reviewed"])
+
+
+        prog_bar.progress(40, text="Fetching operons ...")
+
+        data = append_operons(data, chemical_name)
+
+        prog_bar.progress(95, text="Fetching regulators ...")
+
+
+        if data == None:
+            prog_bar.progress(100, text="Complete.")
+            return None
+            # _regulator_column.write("No regulators found")
+        
+        else:
+
+            regulators = pull_regulators(data, chemical_name)
+            prog_bar.progress(100, text="Complete.")
+
+            
+            # with open("./ligify/temp/"+str(chemical_name)+".json", "w+") as f:
+            #     f.write(json.dumps(regulators))
+            #     print("cached regulator data")
+
+            if regulators == None or len(regulators) == 0:
+                return None
+                # _regulator_column.write("No regulators found")
+
+
+            else:
+                return regulators
+
+
+
+
+
+
+
 
 def run_ligify(chem, regulator_column, data_column, progress, chemical_name, filters):
 
-    if st.session_state.CONNECTED:
+    if st.session_state.SUBMITTED:
 
 
         InChiKey = get_inchiKey(str(chemical_name), "name")
-        SMILES = get_smiles(str(chemical_name))
 
+        SMILES = get_smiles(str(chemical_name))
         chem.image(f'http://hulab.rxnfinder.org/smi2img/{SMILES}/', width=300)
 
-        st.spinner("Processing")
-        my_bar = progress.progress(0, text="Fetching enzymes ...")
-
-        
-        if os.path.exists("./ligify/temp/"+str(chemical_name)+".json"):
-            with open("./ligify/temp/"+str(chemical_name)+".json", "r") as f:
-                regulators = json.load(f)
-                print("loaded cached reg data")
-
-                display_data(chemical_name, regulators, regulator_column)
 
 
-    # else:
-    # if 1 == 1:
+        regulators = fetch_data(chemical_name, InChiKey, filters)
+        # if os.path.exists("./ligify/temp/"+str(chemical_name)+".json"):
+        #     with open("./ligify/temp/"+str(chemical_name)+".json", "r") as f:
+        #         regulators = json.load(f)
+        #         print("loaded cached reg data")
 
-    #     data = chem2enzymes(InChiKey = InChiKey,
-    #         domain_filter = "Bacteria",
-    #         lineage_filter_name = filters["lineage"], 
-    #         reviewed_bool = filters["reviewed"])
+        format_display(data_column)
 
-    #     my_bar.progress(40, text="Fetching operons ...")
+        regulator_column.subheader(f'{chemical_name} sensor candidates')
+        regulator_column.divider()
 
-    #     data = append_operons(data, chemical_name)
-
-    #     my_bar.progress(95, text="Fetching regulators ...")
-
-
-    #     if data == None:
-    #         col1.write("No regulators found")
-        
-    #     else:
-
-    #         regulators = pull_regulators(data, chemical_name)
-            
-    #         with open("./ligify/temp/"+str(chemical_name)+".json", "w+") as f:
-    #             f.write(json.dumps(regulators))
-    #             print("cached regulator data")
-
-
-    #         if regulators == None or len(regulators) == 0:
-    #             col1.write("No regulators found")
-
-
-    #         else:
-    #             display_data(regulators)
-
-
-            
-        my_bar.progress(100, text="Complete.")
-
-
-def show_reg(data):
-    st.session_state.data = data
-    st.experimental_rerun()
-
-
-
-
-def display_data(chemical_name, regulators, regulator_column):
-
-    regulator_column.subheader(f'{chemical_name} sensor candidates')
-    regulator_column.divider()
-
-    for i in range(0, len(regulators)):
-        name = "var"+str(i)
-        name = regulator_column.form_submit_button(regulators[i]['refseq'])
-        if name:
-            show_reg(regulators[i])
-
-
-
-
+        for i in range(0, len(regulators)):
+            name = "var"+str(i)
+            name = regulator_column.form_submit_button(regulators[i]['refseq'])
+            if name:
+                st.session_state.data = regulators[i]
+                st.experimental_rerun()
 
