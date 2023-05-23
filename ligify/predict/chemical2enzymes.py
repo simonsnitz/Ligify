@@ -1,31 +1,22 @@
 import requests
 import json
-import os
+from pprint import pprint
+from ligify.predict.pubchem import get_inchiKey
+# from pubchem import get_inchiKey
 
 
-#InChiKey = "KWIUHFFTVRNATP-UHFFFAOYSA-N"   # Found BetI
-#InChiKey = "KBPLFHHGFOOTCA-UHFFFAOYSA-N"
+# TODO:
+# Get Rhea IDs and equations from PubChem. 
+# Use Uniprot's SPARQL API (https://sparql.uniprot.org/) to speed up data acquisition
 
 
-# InChiKey = "NIXOWILDQLNWCW-UHFFFAOYSA-M"    # Found AcuR
-# chemical_name = "acrylate"
-# domain_filter = "Bacteria"
-# lineage_filter_name = "Family"
 
-
-def chem2enzymes(InChiKey: str, domain_filter: str, lineage_filter_name: str, reviewed_bool):
-
-    if reviewed_bool:
-        reviewed = "true"
-    else:
-        reviewed = "false"
-        # have to map name to number because names are more human readable, but numbers are how
-            # lineages are retrieved programmatically via the Uniprot API.
-    map_lineage2number = {"Domain": 0, "Phylum": 1, "Class": 2, "Order": 3, "Family": 4}
-    lineage_filter = map_lineage2number[lineage_filter_name]
-
+    # May want to get this info from Pubchem rather than Rhea, to avoid converting to the InChiKey
+def fetch_reactions(smiles: str):
 
         # get rhea ids from chemical
+    InChiKey = get_inchiKey(str(smiles), "smiles")
+
     url= "https://www.rhea-db.org/rhea?"
     parameter = {
     "query":'InChiKey:'+str(InChiKey),
@@ -36,28 +27,42 @@ def chem2enzymes(InChiKey: str, domain_filter: str, lineage_filter_name: str, re
 
     data = json.loads(response.text)["results"]
 
-    output = {
-        "metadata": {
-            "InChiKey": InChiKey,
-            "domain_filter": domain_filter,
-            "lineage_similarity_filter": lineage_filter_name
-        }
-    }
-
+    # Not all Rhea IDs have EC numbers associated with them (strangely)
+    output = {}
     output["rxn_data"] = [{"rhea_id": i["id"], "equation": i["equation"]} for i in data]
+
+    return output
+
+
+
+
+
+    # This can probably be faster if I use a GraphQL API request. REST API returns *EVERYTHING*
+def fetch_genes(output, lineage_filter_name, reviewed_bool):
+
+    if reviewed_bool:
+        reviewed = "true"
+    else:
+        reviewed = "false"
 
     rxns = output["rxn_data"]
     
-        # is there a limit of 25 entries here???
     url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:"+reviewed+"+AND+rhea:"
 
+    #For EC number input (not used)
+    #url = https://rest.uniprot.org/uniprotkb/search?&query=reviewed:true+AND+ec:3.2.1.23
 
+
+    # Loop through all RHEA reactions associated with the input chemical.
     for i in range(0,len(rxns)):
 
         response = requests.get(url+str(rxns[i]["rhea_id"]))
         data = json.loads(response.text)["results"]   
 
         proteins = []
+
+        
+
         for entry in data:
 
             if entry["organism"]["lineage"][0] == "Bacteria":
@@ -100,9 +105,14 @@ def chem2enzymes(InChiKey: str, domain_filter: str, lineage_filter_name: str, re
     rxns = [i for i in rxns if len(i["proteins"]) != 0]
 
         #DOUBLE LIST COMPREHENSION!!!
-    num_proteins = len([protein for rxn in rxns for protein in rxn["proteins"]])
-    output["metadata"]["number_reviewed_enzymes"] = num_proteins
+    # num_proteins = len([protein for rxn in rxns for protein in rxn["proteins"]])
+    # output["metadata"]["number_reviewed_enzymes"] = num_proteins
 
+
+    #     # have to map name to number because names are more human readable, but numbers are how
+    #         # lineages are retrieved programmatically via the Uniprot API.
+    map_lineage2number = {"Domain": 0, "Phylum": 1, "Class": 2, "Order": 3, "Family": 4}
+    lineage_filter = map_lineage2number[lineage_filter_name]
 
 
     # filter out highly similar proteins
@@ -126,8 +136,8 @@ def chem2enzymes(InChiKey: str, domain_filter: str, lineage_filter_name: str, re
     output["rxn_data"] = filtered_rxns
 
         # count number of filtered proteins
-    filtered_proteins = len([protein for rxn in filtered_rxns for protein in rxn["proteins"]])
-    output["metadata"]["number_lineage_filtered_enzymes"] = filtered_proteins
+    # filtered_proteins = len([protein for rxn in filtered_rxns for protein in rxn["proteins"]])
+    # output["metadata"]["number_lineage_filtered_enzymes"] = filtered_proteins
 
 
     return output
@@ -136,3 +146,9 @@ def chem2enzymes(InChiKey: str, domain_filter: str, lineage_filter_name: str, re
     #     f.write(json.dumps(output))
     #     print(str(filtered_proteins)+" enzymes for "+chemical_name+" cached in archives")
     
+
+
+if __name__ == "__main__":
+
+    print(fetch_reactions("C=CC(=O)[O-]"))
+
