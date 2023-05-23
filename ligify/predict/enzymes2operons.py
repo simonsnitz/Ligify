@@ -1,45 +1,11 @@
 import json
 import re
 import requests
-import pandas as pd
 
-from ligify.predict.accID2operon import acc2operon
-#from accID2operon import acc2operon
-
-def append_operons(data, chemical_name):
-
-    ligand = data
-
-
-    if len(ligand["rxn_data"]) == 0:
-        print("No enzymes found for "+str(chemical_name))
-        return
-
-    if "context" in ligand["rxn_data"][0]["proteins"][0]:
-        print("operon data for "+chemical_name+" already cached")
-        pass
-
-    else:
-        counter = 0
-        for rxn in range(0,len(ligand["rxn_data"])):
-            for i in range(0, len(ligand["rxn_data"][rxn]["proteins"])):
-                protein = ligand["rxn_data"][rxn]["proteins"][i]
-                ncbi_id = protein["enzyme"]["ncbi_id"]
-                if ncbi_id != None:
-                    if counter <= 25:
-                        context = acc2operon(ncbi_id)
-                        protein["context"] = context
-                        print("fetched context")
-                        counter += 1
-        
-        return ligand
 
 
 #TODO:
-# Get all chemicals associated with the regulator-bearing operons (append a chemicals:[])
-# Get all literature associated with each protein in the operon (append a doi:[])
-
-
+# Speed up protein2chemicals using Uniprot's SPARQL API
 
 
 def protein2chemicals(accession: str):
