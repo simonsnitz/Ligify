@@ -6,7 +6,7 @@ import pandas as pd
 from ligify import __version__ as ligify_version
 
 from ligify.regulator_info import format_display
-from ligify.predict.chemical2enzymes import fetch_reactions, fetch_genes
+from ligify.predict.chemical2enzymes import fetch_reactions, fetch_genes, filter_genes
 from ligify.predict.enzymes2operons import pull_regulators
 from ligify.predict.accID2operon import acc2operon
 
@@ -106,7 +106,7 @@ def run_streamlit():
     col1, col2, col3 = options.columns((1,3,1))
 
     with col2:
-        smiles_code = st_ketcher(chemical_smiles, height=400)
+        smiles = st_ketcher(chemical_smiles, height=400)
 
     with col2.expander("Advanced options"):
 
@@ -143,7 +143,7 @@ def run_streamlit():
 
 
 
-        return chem, regulator_column, data_column, prog, chemical_smiles, filters
+        return chem, regulator_column, data_column, prog, smiles, filters
 
 
 
@@ -151,7 +151,7 @@ def run_streamlit():
 
 
 @st.cache_data
-def fetch_data(chemical_smiles, filters):
+def fetch_data(smiles, filters):
 
 
     prog_container = st.container()
@@ -159,52 +159,77 @@ def fetch_data(chemical_smiles, filters):
     st.spinner("Processing")
 
 
-    prog_bar = prog.progress(0, text="1. Fetching reaction IDs ...")
-    reactions = fetch_reactions(smiles = chemical_smiles)
+    # FETCH REACTIONS
+
+    prog_bar = prog.progress(0, text="1. Fetching reaction IDs")
+    reactions = fetch_reactions(smiles = smiles)
 
 
-    prog_bar.progress(10, text="2. Fetching associated genes ...")
-    data = fetch_genes(reactions, lineage_filter_name = filters["lineage"], reviewed_bool = filters["reviewed"])
+
+    # FETCH GENES
+
+    total_rxns = len(reactions["rxn_data"])
+    prog_bar_increment = 20/int(total_rxns)
+
+    counter = 0
+    for i in reactions["rxn_data"]:
+        prog_value = int(10+counter*prog_bar_increment)
+        prog_bar.progress(prog_value, text=f"2. Fetching genes for reaction {str(counter+1)} of {str(total_rxns)} (rhea:{i['rhea_id']})")
+        associated_proteins = fetch_genes(i["rhea_id"], filters["reviewed"])
+        i["proteins"] = associated_proteins
+        counter += 1
+
+    # Filter genes
+    reactions = filter_genes(reactions, lineage_filter_name = filters["lineage"])
 
 
-    if len(data["rxn_data"]) == 0:
-        print("No enzymes found for "+str(chemical_smiles))
+
+
+    # FETCH OPERONS
+
+    if len(reactions["rxn_data"]) == 0:
+        print("No enzymes found for "+str(smiles))
         pass
     else:
         counter = 0
 
         # Get the total number of valid protein entries for operon fetching
         # This can be shortened using list comprehension
-        total_entries = 0
-        for rxn in range(0,len(data["rxn_data"])):
-            for i in range(0, len(data["rxn_data"][rxn]["proteins"])):
-                protein = data["rxn_data"][rxn]["proteins"][i]
+        total_genes = 0
+        for rxn in range(0,len(reactions["rxn_data"])):
+            for i in range(0, len(reactions["rxn_data"][rxn]["proteins"])):
+                protein = reactions["rxn_data"][rxn]["proteins"][i]
                 if protein["enzyme"]["ncbi_id"] !=  None:
-                    total_entries +=1
-        prog_bar_increment = 60/int(total_entries)
+                    total_genes +=1
 
-        for rxn in range(0,len(data["rxn_data"])):
-            for i in range(0, len(data["rxn_data"][rxn]["proteins"])):
-                protein = data["rxn_data"][rxn]["proteins"][i]
+        prog_bar_increment = 60/int(total_genes)
+
+        for rxn in range(0,len(reactions["rxn_data"])):
+            for i in range(0, len(reactions["rxn_data"][rxn]["proteins"])):
+                protein = reactions["rxn_data"][rxn]["proteins"][i]
                 refseq_id = protein["enzyme"]["ncbi_id"]
                 if refseq_id != None:
 
                     # Limit number of operons evaluated to avoid program taking too long to complete.
                     if counter <= filters["max_entries"]:
                         prog_value = int(30+counter*prog_bar_increment)
-                        prog_bar.progress(prog_value, text=f"3. Fetching data for operon {str(counter+1)} of {str(total_entries)}")
+
+                        prog_bar.progress(prog_value, text=f"3. Fetching operon for gene {str(counter+1)} of {str(total_genes)} ({refseq_id})")
                         protein["context"] = acc2operon(refseq_id)
                         counter += 1
 
 
+
+        # FETCH REGULATORS
+
         prog_bar.progress(90, text="Fetching regulators ...")
 
-        if data == None:
+        if reactions == None:
             prog_bar.progress(100, text="Complete.")
             return None
         
         else:
-            regulators = pull_regulators(data, chemical_smiles)
+            regulators = pull_regulators(reactions, smiles)
             prog_bar.progress(100, text="Complete.")
 
             if regulators == None or len(regulators) == 0:

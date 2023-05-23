@@ -2,6 +2,7 @@ import requests
 import json
 from pprint import pprint
 from ligify.predict.pubchem import get_inchiKey
+import time
 # from pubchem import get_inchiKey
 
 
@@ -35,72 +36,69 @@ def fetch_reactions(smiles: str):
 
 
 
-
-
-    # This can probably be faster if I use a GraphQL API request. REST API returns *EVERYTHING*
-def fetch_genes(output, lineage_filter_name, reviewed_bool):
+def fetch_genes(rhea_id, reviewed_bool):
 
     if reviewed_bool:
-        reviewed = "true"
+        url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:true+AND+rhea:" 
     else:
-        reviewed = "false"
-
-    rxns = output["rxn_data"]
-    
-    url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:"+reviewed+"+AND+rhea:"
-
-    #For EC number input (not used)
-    #url = https://rest.uniprot.org/uniprotkb/search?&query=reviewed:true+AND+ec:3.2.1.23
+        url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:false+AND+rhea:" 
 
 
     # Loop through all RHEA reactions associated with the input chemical.
-    for i in range(0,len(rxns)):
 
-        response = requests.get(url+str(rxns[i]["rhea_id"]))
-        data = json.loads(response.text)["results"]   
+    response = requests.get(url+str(rhea_id))
+    data = json.loads(response.text)["results"]   
 
-        proteins = []
+    proteins = []
+    
+    for entry in data:
+        if entry["organism"]["lineage"][0] == "Bacteria":
 
-        
+            # Get reference DOIs
+            description = entry["proteinDescription"]["recommendedName"]["fullName"]["value"]
+            dois = []
+            for j in entry['references']:
+                if "citationCrossReferences" in j["citation"]:
+                    for k in j["citation"]["citationCrossReferences"]:
+                        if k["database"] == "DOI":
+                            dois.append(k["id"])
 
-        for entry in data:
-
-            if entry["organism"]["lineage"][0] == "Bacteria":
-                description = entry["proteinDescription"]["recommendedName"]["fullName"]["value"]
-                dois = []
-                for j in entry['references']:
-                    if "citationCrossReferences" in j["citation"]:
-                        for k in j["citation"]["citationCrossReferences"]:
-                            if k["database"] == "DOI":
-                                dois.append(k["id"])
-                    # The "NCBI_ID" is needed to get the genome context in the next step. Prefer to use RefSeq, but can use EMBL.
+            # Get RefSeq ID
+            # The "NCBI_ID" is needed to get the genome context in the next step. Prefer to use RefSeq, but can use EMBL.
+            try:
+                ncbi_id = [e["id"] for e in entry["uniProtKBCrossReferences"] if e["database"] == "RefSeq"][0]
+            except:
                 try:
-                    ncbi_id = [e["id"] for e in entry["uniProtKBCrossReferences"] if e["database"] == "RefSeq"][0]
+                    ncbi_id = [e["properties"] for e in entry["uniProtKBCrossReferences"] if e["database"] == "EMBL"][0]
+                    ncbi_id = [e["value"] for e in ncbi_id if e["key"] == "ProteinId"][0]
                 except:
-                    try:
-                        ncbi_id = [e["properties"] for e in entry["uniProtKBCrossReferences"] if e["database"] == "EMBL"][0]
-                        ncbi_id = [e["value"] for e in ncbi_id if e["key"] == "ProteinId"][0]
-                    except:
-                        ncbi_id = None
-                        print("no ncbi id retrived")
+                    ncbi_id = None
+                    print("no ncbi id retrived")
 
-                uniprotID = entry["primaryAccession"]
-                organism = entry["organism"]["lineage"]
+            # Get Uniprot ID and Organism
+            uniprotID = entry["primaryAccession"]
+            organism = entry["organism"]["lineage"]
 
-                protein = {
-                    "organism": organism,
-                    "enzyme": {
-                        "description": description,
-                        "uniprot_id": uniprotID,
-                        "dois": dois,
-                        "ncbi_id": ncbi_id,
-                    }
+            # Format protein data into a dictionary
+            protein = {
+                "organism": organism,
+                "enzyme": {
+                    "description": description,
+                    "uniprot_id": uniprotID,
+                    "dois": dois,
+                    "ncbi_id": ncbi_id,
                 }
-                proteins.append(protein)
-        
-        rxns[i]["proteins"] = proteins
+            }
+            proteins.append(protein)
+    
+    return proteins
 
 
+
+
+def filter_genes(output, lineage_filter_name):
+
+    rxns = output["rxn_data"]
         # filter out empties
     rxns = [i for i in rxns if len(i["proteins"]) != 0]
 
@@ -142,6 +140,7 @@ def fetch_genes(output, lineage_filter_name, reviewed_bool):
 
     return output
 
+
     # with open("archives/"+chemical_name+".json", "w+") as f:
     #     f.write(json.dumps(output))
     #     print(str(filtered_proteins)+" enzymes for "+chemical_name+" cached in archives")
@@ -151,4 +150,6 @@ def fetch_genes(output, lineage_filter_name, reviewed_bool):
 if __name__ == "__main__":
 
     print(fetch_reactions("C=CC(=O)[O-]"))
+
+
 
