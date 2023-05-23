@@ -10,6 +10,3 @@ def streamlit_run():
     run_ligify(chem, regulator_column, data_column, prog, chemical_name, filters)
 
 streamlit_run()
-
-# if __name__ == '__main__':
-#     streamlit_run()
