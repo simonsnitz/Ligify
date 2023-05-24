@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit_ketcher import st_ketcher
 import sys 
 import pandas as pd
+from pprint import pprint
 
 from ligify import __version__ as ligify_version
 
@@ -98,14 +99,14 @@ def run_streamlit():
     head2.markdown("<h1 style='text-align: center; color: black;'>Ligify</h1>", unsafe_allow_html=True)
     head2.subheader('Predict sensors responsive to an input ligand')
 
-    chemical_smiles = head2.text_input("Molecule", "C=CC(=O)[O-]")
+    chemical_smiles = head2.text_input("Molecule SMILES", "C=CC(=O)[O-]")
 
 
     # OPTIONS
     options = st.container()
     col1, col2, col3 = options.columns((1,3,1))
 
-    with col2:
+    with col2.expander("Draw the chemical"):
         smiles = st_ketcher(chemical_smiles, height=400)
 
     with col2.expander("Advanced options"):
@@ -150,6 +151,7 @@ def run_streamlit():
 
 
 
+
 @st.cache_data
 def fetch_data(smiles, filters):
 
@@ -157,6 +159,7 @@ def fetch_data(smiles, filters):
     prog_container = st.container()
     prog_spacerL, prog, prog_spacerR = prog_container.columns((1,1,1))
     st.spinner("Processing")
+
 
 
     # FETCH REACTIONS
@@ -179,9 +182,8 @@ def fetch_data(smiles, filters):
         i["proteins"] = associated_proteins
         counter += 1
 
-    # Filter genes
+    # Filter homologous genes
     reactions = filter_genes(reactions, lineage_filter_name = filters["lineage"])
-
 
 
 
@@ -202,7 +204,7 @@ def fetch_data(smiles, filters):
                 if protein["enzyme"]["ncbi_id"] !=  None:
                     total_genes +=1
 
-        prog_bar_increment = 60/int(total_genes)
+        prog_bar_increment = 50/int(total_genes)
 
         for rxn in range(0,len(reactions["rxn_data"])):
             for i in range(0, len(reactions["rxn_data"][rxn]["proteins"])):
@@ -222,14 +224,30 @@ def fetch_data(smiles, filters):
 
         # FETCH REGULATORS
 
-        prog_bar.progress(90, text="Fetching regulators ...")
-
         if reactions == None:
             prog_bar.progress(100, text="Complete.")
             return None
         
         else:
-            regulators = pull_regulators(reactions, smiles)
+
+            total_regs = 0
+            for rxn in reactions["rxn_data"]:
+                for protein in rxn["proteins"]:
+                    total_regs += 1
+            prog_bar_increment = 20/int(total_regs)
+
+            counter = 0
+            regulators = []
+            for rxn in reactions["rxn_data"]:
+                for protein in rxn["proteins"]:
+                    prog_value = int(80+counter*prog_bar_increment)
+                    prog_bar.progress(prog_value, text=f"4. Fetching data for regulator {str(counter+1)} of {str(total_rxns)} ({protein['organism'][-2]}, {protein['organism'][-1]})")
+
+                    regs = pull_regulators(protein, smiles, rxn)
+                    for r in regs:
+                        regulators.append(r)
+                    counter += 1
+
             prog_bar.progress(100, text="Complete.")
 
             if regulators == None or len(regulators) == 0:
