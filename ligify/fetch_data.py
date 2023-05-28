@@ -33,7 +33,7 @@ def fetch_data(smiles, filters):
     for i in reactions["rxn_data"]:
         prog_value = int(10+counter*prog_bar_increment)
         prog_bar.progress(prog_value, text=f"2. Fetching genes for reaction {str(counter+1)} of {str(total_rxns)} (rhea:{i['rhea_id']})")
-        associated_proteins = fetch_genes(i["rhea_id"], filters["reviewed"])
+        associated_proteins = fetch_genes(i["rhea_id"], filters["reviewed"], filters["proteins_per_reaction"])
         i["proteins"] = associated_proteins
         counter += 1
 
@@ -68,7 +68,7 @@ def fetch_data(smiles, filters):
                 if refseq_id != None:
 
                     # Limit number of operons evaluated to avoid program taking too long to complete.
-                    if counter <= filters["max_entries"]:
+                    if counter <= filters["max_operons"]:
                         prog_value = int(30+counter*prog_bar_increment)
 
                         prog_bar.progress(prog_value, text=f"3. Fetching operon for gene {str(counter+1)} of {str(total_genes)} ({refseq_id})")

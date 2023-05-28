@@ -125,11 +125,24 @@ def run_streamlit():
     with col2.expander("Advanced options"):
 
         adv_options = st.container()
-        option1, option2, option3 = adv_options.columns((1,3,2))
-        reviewed = option1.checkbox("Reviewed only", value=True)
-        lineage_filter_name = option2.selectbox("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "None"], index=4)
-        max_entries = option3.number_input("Max number of entries surveyed", value=20)
-        filters = {"reviewed": reviewed, "lineage": lineage_filter_name, "max_entries": max_entries}
+        adv_options.write("Editing these changes processing time and data returned")
+        option1, option2, option3, option4 = adv_options.columns((1,2,2,2))
+
+
+        option2.write("Fetch genes")
+        proteins_per_reaction = option2.number_input("Max number of proteins fetched per reaction", value=25)
+        reviewed = option2.checkbox("Reviewed only", value=True)
+
+        option3.write("Fetch operons")
+        max_operons = option3.number_input("Max number of operons surveyed", value=20)
+        lineage_filter_name = option3.selectbox("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "Genus"], index=4)
+
+        option4.write("Fetch regulators")
+        alt_ligands = option4.checkbox("Get alternative ligands", value=True)
+        protein_seq = option4.checkbox("Get protein sequence", value=True)
+        operator_seq = option4.checkbox("Get candidate operator sequence", value=True)
+
+        filters = {"reviewed": reviewed, "lineage": lineage_filter_name, "proteins_per_reaction": proteins_per_reaction, "max_operons": max_operons}
 
 
 

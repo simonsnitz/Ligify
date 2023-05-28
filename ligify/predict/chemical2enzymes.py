@@ -36,12 +36,12 @@ def fetch_reactions(smiles: str):
 
 
 
-def fetch_genes(rhea_id, reviewed_bool):
+def fetch_genes(rhea_id, reviewed_bool, proteins_per_reaction):
 
     if reviewed_bool:
-        url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:true+AND+rhea:" 
+        url = f'https://rest.uniprot.org/uniprotkb/search?format=json&size={proteins_per_reaction}&query=reviewed:true+AND+rhea:'
     else:
-        url = "https://rest.uniprot.org/uniprotkb/search?format=json&query=reviewed:false+AND+rhea:" 
+        url = f'https://rest.uniprot.org/uniprotkb/search?format=json&size={proteins_per_reaction}&query=reviewed:false+AND+rhea:' 
 
 
     # Loop through all RHEA reactions associated with the input chemical.
@@ -109,7 +109,7 @@ def filter_genes(output, lineage_filter_name):
 
     #     # have to map name to number because names are more human readable, but numbers are how
     #         # lineages are retrieved programmatically via the Uniprot API.
-    map_lineage2number = {"Domain": 0, "Phylum": 1, "Class": 2, "Order": 3, "Family": 4}
+    map_lineage2number = {"Domain": 0, "Phylum": 1, "Class": 2, "Order": 3, "Family": 4, "Genus": 5}
     lineage_filter = map_lineage2number[lineage_filter_name]
 
 
