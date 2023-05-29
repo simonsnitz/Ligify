@@ -2,6 +2,8 @@ import requests
 import json
 from pprint import pprint
 import time
+from libchebipy._chebi_entity import ChebiEntity
+from math import ceil
 # from pubchem import get_inchiKey
 
 
@@ -9,6 +11,7 @@ import time
 # Get Rhea IDs and equations from PubChem. 
 
 
+# Create a json file with all rhea reactions and associated chemical IDs for each
 def initialize_database():
     with open("all_chemicals.json", "w+") as f:
 
@@ -35,7 +38,7 @@ def initialize_database():
 
 
 
-
+# Format the chemical database to link from rhea -> chem ID, to chem ID -> rhea
 def format_data():
     with open("all_chemicals.json", "r+") as f:
 
@@ -56,6 +59,119 @@ def format_data():
 
 
 
+# filter chemical database to drug-like molecules that likely can cross the cell membrane
+def lipinski_filter():
+    with open("formatted.json", "r") as f:
+
+        data = json.load(f)
+
+        num_batches = ceil(len(data)/1000)
+
+        chem_json = {}
+        
+        for i in range(0, num_batches):
+            
+            # extract the group of 1000 relevant chemical IDs
+            counter = 0
+            start = i*1000
+            end = (i+1)*1000
+            chebis = ""
+            for chebi in data:
+                if counter >= start and counter < end:
+                    chebis += "CHEBI:"+str(chebi)+","
+                counter += 1
+
+            chebis = chebis[0:-1]
+
+            # get chemical data from an API request to mychem
+            params = {'ids':chebis, 'fields':\
+                'pubchem.xlogp,\
+                pubchem.formal_charge,\
+                pubchem.molecular_weight,\
+                pubchem.hydrogen_bond_acceptor_count,\
+                pubchem.hydrogen_bond_donor_count,\
+                pubchem.topological_polar_surface_area,\
+                pubchem.rotatable_bond_count,\
+                pubchem.smiles.isomeric,\
+                pubchem.smiles.canonical,\
+                chebi.name'}
+
+            res = requests.post('http://mychem.info/v1/chem', params)
+            con = res.json()
+            
+            t = 0
+            a = 0
+
+            for chem in con:
+
+                chebid = chem['query'].strip("CHEBI:")
+                rheas = data[chebid]
+                try:
+                    name = chem["chebi"]["name"]
+                except:
+                    try:
+                        name = chem["chebi"][0]["name"]
+                    except:
+                        name = "unknown"
+
+                try:
+                    charge = chem['pubchem']['formal_charge']
+                    mass = chem['pubchem']['molecular_weight']
+                    hbond_acceptor = chem["pubchem"]['hydrogen_bond_acceptor_count']
+                    hbond_donor = chem["pubchem"]["hydrogen_bond_donor_count"]
+                    rbonds = chem['pubchem']['rotatable_bond_count']
+                    polar_sa = chem['pubchem']['topological_polar_surface_area']
+                    logp = chem['pubchem']['xlogp']
+                    try:
+                        smiles = chem["pubchem"]["smiles"]["isomeric"]
+                    except:
+                        smiles = chem["pubchem"]["smiles"]["canonical"]
+                    t += 1
+
+                    if logp < 5 and mass < 500 and (hbond_acceptor+hbond_donor) < 12 and rbonds < 10 and polar_sa < 140 and abs(charge) < 2:
+                        # add to new dictionary
+                        chem_json[chebid] = { 
+                            "rheas": rheas,
+                            "name": name,
+                            "smiles": smiles }
+                        a += 1
+
+
+                except:
+                    try:
+                        charge = chem['pubchem']['formal_charge']
+                        mass = chem['pubchem']['molecular_weight']
+                        hbond_acceptor = chem["pubchem"]['hydrogen_bond_acceptor_count']
+                        hbond_donor = chem["pubchem"]["hydrogen_bond_donor_count"]
+                        rbonds = chem['pubchem']['rotatable_bond_count']
+                        polar_sa = chem['pubchem']['topological_polar_surface_area']
+                        try:
+                            smiles = chem["pubchem"]["smiles"]["isomeric"]
+                        except:
+                            smiles = chem["pubchem"]["smiles"]["canonical"]
+                        t += 1
+
+                        if mass < 500 and (hbond_acceptor+hbond_donor) < 12 and rbonds < 10 and polar_sa < 140 and abs(charge) < 2:
+                            # add to new dictionary
+                            chem_json[chebid] = { 
+                                "rheas": rheas,
+                                "name": name,
+                                "smiles": smiles }
+                            a += 1                   
+                    except:
+                        pass                
+
+            print('tested: '+str(t))
+            print("added: "+ str(a))
+
+        with open("drug_like.json", "w+") as o:
+
+            out = json.dumps(chem_json)
+            o.write(out)
+            print('saved drug-like molecules')
+
+
+
 
 
 
@@ -64,7 +180,7 @@ def append_genes():
     url = "https://rest.uniprot.org/uniprotkb/search?format=json&size=25&query=reviewed:true+AND+"
 
 
-    with open("formatted.json", "r") as f:
+    with open("drug_like.json", "r") as f:
             
         db = json.load(f)
 
@@ -196,24 +312,27 @@ if __name__ == "__main__":
     # pprint(fetch_reactions("C=CC(=O)[O-]"))
     # initialize_database()
     # format_data()
-    append_genes()
 
-
-    # with open("formatted.json", "r") as f:
-
-    #     data = json.load(f)
-    #     print(data["4986"])
-
-    # with open("all_chemicals.json", "r") as f:
-
-    #     data = json.load(f)
-
-    #     for rhea in data:
-    #         for chem in data[rhea]:
-    #             if chem == "4986":
-    #                 print(rhea)
-        # print(data["4986"])
+    #lipinski_filter()
 
 
 
 
+
+
+
+
+
+    with open("drug_like.json", "r") as f:
+        data = json.load(f)
+        
+        with open("names.txt", "w+") as out_file:
+            out = ""
+            for i in data:
+                out += str(data[i]["name"])+"\n"
+
+            out_file.write(out)
+
+
+    
+    # append_genes()
