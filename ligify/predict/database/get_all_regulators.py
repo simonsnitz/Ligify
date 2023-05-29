@@ -184,14 +184,15 @@ def append_genes():
             
         db = json.load(f)
 
-        with open("all_proteins.json", "w+") as out:
+        with open("all_proteins.json", "w") as out:
 
             db_with_proteins = {}
 
             counter = 0
             for chemical in db:
-                if counter < 10:
-                    rhea_ids = [i.strip("RHEA:") for i in db[chemical]]
+                if counter < 3000:
+                    rhea_ids = [i.strip("RHEA:") for i in db[chemical]["rheas"]]
+                    
 
                     rhea_suffix = "".join("rhea:"+str(id)+"+OR+" for id in rhea_ids)[:-4]
 
@@ -245,11 +246,20 @@ def append_genes():
                                     proteins.append(protein)
                 
 
-                        counter += 1
+
+
                         if len(proteins) != 0:
-                            db_with_proteins[chemical] = proteins
+                            db_with_proteins[chemical] = {
+                                "name": db[chemical]["name"],
+                                "smiles": db[chemical]["smiles"],
+                                "rheas": db[chemical]["rheas"],
+                                "proteins":proteins
+                            }
                             print("finished "+str(counter)+" of "+(str(len(db))))
-                            out.write(json.dumps(db_with_proteins))
+
+                counter += 1
+            out.write(json.dumps(db_with_proteins))
+
                     
         #print(counter)
 
@@ -317,22 +327,24 @@ if __name__ == "__main__":
 
 
 
+    #append_genes()
 
 
 
 
 
 
-    with open("drug_like.json", "r") as f:
-        data = json.load(f)
+
+    # with open("drug_like.json", "r") as f:
+    #     data = json.load(f)
         
-        with open("names.txt", "w+") as out_file:
-            out = ""
-            for i in data:
-                out += str(data[i]["name"])+"\n"
+    #     with open("names.txt", "w+") as out_file:
+    #         out = ""
+    #         for i in data:
+    #             out += str(data[i]["name"])+"\n"
 
-            out_file.write(out)
+    #         out_file.write(out)
 
 
     
-    # append_genes()
+
