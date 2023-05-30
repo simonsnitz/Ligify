@@ -1,9 +1,13 @@
 import requests
 import json
+import os
 from pprint import pprint
 import time
 from libchebipy._chebi_entity import ChebiEntity
 from math import ceil
+import sys
+sys.path.append("..") # Adds higher directory to python modules path.
+from accID2operon import acc2operon
 # from pubchem import get_inchiKey
 
 
@@ -259,85 +263,177 @@ def append_genes():
 
                 counter += 1
             out.write(json.dumps(db_with_proteins))
-
-                    
-        #print(counter)
+            print("saved data to all_proteins.json")
 
 
 
 
-def filter_genes(output, lineage_filter_name):
 
-    rxns = output["rxn_data"]
-        # filter out empties
-    rxns = [i for i in rxns if len(i["proteins"]) != 0]
+def filter_genes():
 
-        #DOUBLE LIST COMPREHENSION!!!
-    # num_proteins = len([protein for rxn in rxns for protein in rxn["proteins"]])
-    # output["metadata"]["number_reviewed_enzymes"] = num_proteins
+    with open("all_proteins.json", "r") as f:
 
+        data = json.load(f)
 
-    #     # have to map name to number because names are more human readable, but numbers are how
-    #         # lineages are retrieved programmatically via the Uniprot API.
-    map_lineage2number = {"Domain": 0, "Phylum": 1, "Class": 2, "Order": 3, "Family": 4}
-    lineage_filter = map_lineage2number[lineage_filter_name]
+        print("Total number of chemicals: "+str(len(data)))
 
 
-    # filter out highly similar proteins
-    filtered_rxns = []
-    for rxn in rxns:
-        filtered_proteins = []
-        families = []
-        for protein in rxn["proteins"]:
-                # Sometimes the family name isn't provided in the lineage returned.
-            try:
-                family = protein["organism"][lineage_filter]
-            except:
-                family = ""
-            if family not in families:
-                families.append(family)
-                filtered_proteins.append(protein)
-        new_rxn = rxn
-        new_rxn["proteins"] = filtered_proteins
-        filtered_rxns.append(new_rxn)
+        filtered = {}
+        for chem in data:
+            diverse_proteins = []
+            families = []
+            for protein in data[chem]["proteins"]:
+                    # Sometimes the family name isn't provided in the lineage returned.
+                try:
+                    family = protein["organism"][3]
+                except:
+                    family = ""
+                if family not in families:
+                    families.append(family)
+                    diverse_proteins.append(protein)
+            new_rxn = data[chem]
+            new_rxn["proteins"] = diverse_proteins
+            filtered[chem] = new_rxn
 
-    output["rxn_data"] = filtered_rxns
-
-        # count number of filtered proteins
-    # filtered_proteins = len([protein for rxn in filtered_rxns for protein in rxn["proteins"]])
-    # output["metadata"]["number_lineage_filtered_enzymes"] = filtered_proteins
+        with open("filtered_proteins.json", "w+") as out_file:
+            out_file.write(json.dumps(filtered))
+            print("saved filtered data in filtered_proteins.json")
 
 
-    return output
 
 
-    # with open("archives/"+chemical_name+".json", "w+") as f:
-    #     f.write(json.dumps(output))
-    #     print(str(filtered_proteins)+" enzymes for "+chemical_name+" cached in archives")
+def fetch_operons():
+
+    with open("filtered_proteins.json", "r") as f:
+
+        og_data = json.load(f)
+        # if os.path.exists("with_operons.json") == False:
+        #     print("creating a new with_operons output file")
+        #     with open("with_operons.json", "w") as o:
+        #         pass
+
+
+        with open("with_operons.json", "r+") as out:
+            data_with_operons = json.load(out)
+            
+            num_proteins = 0
+            for i in og_data:
+                for p in og_data[i]["proteins"]:
+                    num_proteins += 1
+
+
+            c = 0
+            for chem in og_data:
+                protein = og_data[chem]["proteins"]
+                for protein_index in range(0, len(og_data[chem]["proteins"])):
+                    if c < 3000:
+                        if chem in data_with_operons:
+                            if "context" in data_with_operons[chem]["proteins"][protein_index]:
+                                pass
+                            else:
+                                refseq = protein[protein_index]["enzyme"]["ncbi_id"]
+                                if refseq != None:
+                                    operon = acc2operon(refseq)
+                                    protein[protein_index]["context"] = operon
+                                    data_with_operons[chem] = og_data[chem]
+                        else:
+                            refseq = protein[protein_index]["enzyme"]["ncbi_id"]
+                            if refseq != None:
+                                operon = acc2operon(refseq)
+                                protein[protein_index]["context"] = operon
+                                data_with_operons[chem] = og_data[chem]
+
+                        print("fetched protein "+str(c)+" of "+str(num_proteins))
+                        c += 1
+                
+
+                out.seek(0)
+                out.write(json.dumps(data_with_operons))
+                out.truncate()            
+
+                
+
+
+
+
+def pull_regulators(protein, chemical_name, rxn):
+
+
+    regulator = re.compile(r"regulator|repressor|activator")
+
+    reg_data = []
+
+    ligand_names = []
+    if "context" in protein.keys():
+        if protein["context"] != "EMPTY":
+            operon = protein["context"]["operon"]
+            for gene in operon:
+                if "description" in gene.keys():
+                    if regulator.search(gene["description"]):
+
+                        entry = {   "refseq": gene["accession"],
+                                    "annotation": gene["description"],
+                                    "protein": protein,
+                                    "equation": rxn["equation"],
+                                    "rhea_id": rxn["rhea_id"],
+                                    }
+
+                        for gene in operon:
+                            protein_data = protein2chemicals(gene["accession"])
+                            if isinstance(protein_data, dict):
+                                if "catalysis" in protein_data.keys():
+                                    ligand_names += protein_data["catalysis"].split(" ")
+                        unique_ligands = list(set(ligand_names))
+                        not_ligands = ["H2O", "+", "-", "=", "A", "AH2", "H(+)", "NADPH", "NADH", "NADP(+)", "NAD(+)", str(chemical_name).lower()]
+                        unique_ligands = [ i for i in unique_ligands if i not in not_ligands]
+
+                        entry['alt_ligands'] = unique_ligands
+
+                        reg_data.append(entry)
+
+                
+    return reg_data
+
+
+
+
+
     
 
 
 if __name__ == "__main__":
 
     # pprint(fetch_reactions("C=CC(=O)[O-]"))
+
     # initialize_database()
+    
     # format_data()
 
     #lipinski_filter()
 
+    # append_genes()
+
+    # filter_genes()
+
+    # fetch_operons()
+
+    pull_regulators()
 
 
-    #append_genes()
 
-
-
-
-
-
-
-    # with open("drug_like.json", "r") as f:
+    # with open("all_proteins.json", "r") as f:
     #     data = json.load(f)
-        
+
+    #     c = 0
+    #     for chem in data:
+    #         for protein in data[chem]["proteins"]:
+    #             c += 1
+    #     print(c)
+
+
+
+
+
     #     with open("names.txt", "w+") as out_file:
     #         out = ""
     #         for i in data:
