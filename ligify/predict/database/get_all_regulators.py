@@ -1,9 +1,8 @@
 import requests
 import json
-import os
+import re
 from pprint import pprint
 import time
-from libchebipy._chebi_entity import ChebiEntity
 from math import ceil
 import sys
 sys.path.append("..") # Adds higher directory to python modules path.
@@ -356,43 +355,78 @@ def fetch_operons():
 
 
 
-def pull_regulators(protein, chemical_name, rxn):
+def pull_regulators():
 
+    with open("with_operons.json", "r") as f:
 
-    regulator = re.compile(r"regulator|repressor|activator")
+        data = json.load(f)
 
-    reg_data = []
+        regulator = re.compile(r"regulator|repressor|activator")
 
-    ligand_names = []
-    if "context" in protein.keys():
-        if protein["context"] != "EMPTY":
-            operon = protein["context"]["operon"]
-            for gene in operon:
-                if "description" in gene.keys():
-                    if regulator.search(gene["description"]):
+        ligand_names = []
+        unique_ligands = []
+        c = 0
+        r = 0
+        gene_distances = {}
 
-                        entry = {   "refseq": gene["accession"],
-                                    "annotation": gene["description"],
-                                    "protein": protein,
-                                    "equation": rxn["equation"],
-                                    "rhea_id": rxn["rhea_id"],
-                                    }
+        for chem in data:
+            for protein in data[chem]["proteins"]:
 
+                if "context" in protein.keys():
+                    if protein["context"] != "EMPTY":
+                        c += 1
+
+                        operon = protein["context"]["operon"]
+                        index = 0
                         for gene in operon:
-                            protein_data = protein2chemicals(gene["accession"])
-                            if isinstance(protein_data, dict):
-                                if "catalysis" in protein_data.keys():
-                                    ligand_names += protein_data["catalysis"].split(" ")
-                        unique_ligands = list(set(ligand_names))
-                        not_ligands = ["H2O", "+", "-", "=", "A", "AH2", "H(+)", "NADPH", "NADH", "NADP(+)", "NAD(+)", str(chemical_name).lower()]
-                        unique_ligands = [ i for i in unique_ligands if i not in not_ligands]
+                            if "description" in gene.keys():
+                                if regulator.search(gene["description"]):
+                                    protein["context"]["regulator_index"] = index
+                                    # filter out any regulators over 400 amino acids (XylR is 392, which is big)
+                                    length = max(gene["start"], gene["stop"]) - min(gene["start"], gene["stop"])
+                                    if length < 1200:
+                                        
+                                        # filter out regulators that are more than 3 genes away from their associated enzyme
+                                        gene_distance = max(index, protein["context"]["enzyme_index"]) - min(index, protein["context"]["enzyme_index"])
+                                        if str(gene_distance) in gene_distances:
+                                            gene_distances[str(gene_distance)] += 1
+                                        else:
+                                            gene_distances[str(gene_distance)] = 1
+                                        if gene_distance > 0 and gene_distance < 4:
 
-                        entry['alt_ligands'] = unique_ligands
+                                            # Only return unique chemicals
+                                            name = data[chem]["name"]
 
-                        reg_data.append(entry)
+                                            if re.compile(r"carnitine").search(name):
+                                                pprint(protein)
+                                                print(data[chem]["name"])
+                                                r += 1
+
+                                            if name not in ligand_names:
+                                            #     entry = {
+                                            #         "name": name,
+                                            #         "smiles": data[chem]["smiles"]
+                                            #     }
+                                                #unique_ligands.append(name)
+                                                ligand_names.append(name)
+                                            #     r += 1
+                            index += 1
+
+
+    print(r)
+    # print(r)
+    # print(gene_distances)
+    l_names = "\n".join(i for i in ligand_names)
+
+    with open('names.txt', "w") as o:
+        o.write(l_names)
+    # with open("unique_ligands.json", "w") as f:
+    #     out = json.dumps(unique_ligands)
+    #     f.write(out)
+    #     print('saved unique ligands file')
+
 
                 
-    return reg_data
 
 
 
