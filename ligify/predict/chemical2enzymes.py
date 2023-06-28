@@ -13,7 +13,7 @@ import time
 
 
     # May want to get this info from Pubchem rather than Rhea, to avoid converting to the InChiKey
-def fetch_reactions(smiles: str):
+def fetch_reactions(smiles: str, max_reactions: int):
 
         # get rhea ids from chemical
     InChiKey = get_inchiKey(str(smiles), "smiles")
@@ -30,7 +30,7 @@ def fetch_reactions(smiles: str):
 
     # Not all Rhea IDs have EC numbers associated with them (strangely)
     output = {}
-    output["rxn_data"] = [{"rhea_id": i["id"], "equation": i["equation"]} for i in data]
+    output["rxn_data"] = [{"rhea_id": i["id"], "equation": i["equation"]} for i in data][0:max_reactions]
 
     return output
 

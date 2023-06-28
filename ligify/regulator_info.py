@@ -5,14 +5,7 @@ import pandas as pd
 
 def format_display(data_column):
 
-    if st.session_state.SUBMITTED and not st.session_state.data:
-
-        select_container = data_column.container()
-        select_spacerL, please_select, select_spacerR  = select_container.columns([1,2,1])
-        please_select.subheader("Please select a regulator")
-
-
-    elif st.session_state.data:
+    if st.session_state.data:
 
         # Regulator info
         refseq = st.session_state.data['refseq']
@@ -35,21 +28,12 @@ def format_display(data_column):
 
         # Organism info
         genome_id = st.session_state.data['protein']['context']['genome'] 
-        kingdom = st.session_state.data['protein']['organism'][0]
-        phylum = st.session_state.data['protein']['organism'][1]
-        org_class = st.session_state.data['protein']['organism'][2]
-        order = st.session_state.data['protein']['organism'][3]
-        family = st.session_state.data['protein']['organism'][4]
-        genus = st.session_state.data['protein']['organism'][5]
-
         org_json = {"name": "organism attribute",
-                    "genome_id": genome_id,
-                    "kingdom": kingdom,
-                    "phylum": phylum,
-                    "class": org_class,
-                    "order": order,
-                    "family": family,
-                    "genus": genus}
+            "genome_id": genome_id}
+
+        phylogeny_names = ["kingdom", "phylum", "class", "order", "family", "genus"]
+        for i in range(0, len(st.session_state.data["protein"]["organism"])):
+            org_json[phylogeny_names[i]] = st.session_state.data["protein"]["organism"][i]
 
 
 
@@ -74,7 +58,7 @@ def format_display(data_column):
         enz.subheader("Associated enzyme")
         enz.table(enz_df)
 
-        enz.text("Literature")
+        enz.text("Literature references")
         for i in references:
             enz.markdown(f'<a target="__blank">{"https://doi.org/"+i}</a>', unsafe_allow_html=True)
 

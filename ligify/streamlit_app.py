@@ -6,13 +6,15 @@ from ligify import __version__ as ligify_version
 
 from ligify.regulator_info import format_display
 from ligify.fetch_data import fetch_data
+from ligify.predict.database.chemical_db import blast_chemical
+from ligify.predict.pubchem import get_smiles
 
 
 
 def setup_page():
     
     st.set_page_config(page_title="Ligify", layout='wide', initial_sidebar_state='auto')
-    sys.tracebacklimit = 0 #removes traceback so code is not shown during errors
+    #sys.tracebacklimit = 0 #removes traceback so code is not shown during errors
 
     hide_streamlit_style = '''
     <style>
@@ -26,13 +28,6 @@ def setup_page():
     st.markdown(f'<div style="text-align: right; font-size: 0.9em"> Version: {ligify_version} </div>', unsafe_allow_html=True)
 
 
-# Add a sidebar for documentation?
-    # with st.sidebar:
-    #     st.header("How to use")
-    #     st.divider()
-    #     st.header("About")
-    #     st.divider()
-    #     st.header("FAQ")
 
 
     # Removes the full-screen button for various elements
@@ -114,7 +109,8 @@ def run_streamlit():
     if input_mode == 'SMILES':
         smiles = head2.text_input("", "C=CC(=O)[O-]", label_visibility="collapsed")
     elif input_mode == 'Name':
-        smiles = head2.text_input("", "Acrylate", label_visibility="collapsed")
+        chemical_name = head2.text_input("", "Acrylate", label_visibility="collapsed")
+        smiles = get_smiles(chemical_name)
     elif input_mode == 'Draw':
         with col2:
             smiles = st_ketcher("C=CC(=O)[O-]", height=400)
@@ -125,8 +121,6 @@ def run_streamlit():
     with st.sidebar:
 
         st.write("Bacteria respond to chemical cues using protein transcription regulators.")
-
-        st.write("Regulators can be repurposed into chemical-responsive tools for Synthetic Biology.")
 
         st.write("Ligify is a search tool used to find regulators responsive to user-defined metabolites.")
 
@@ -147,22 +141,31 @@ def run_streamlit():
         adv_options.write("Editing these changes processing time and data returned")
         adv_options.divider()
 
+        adv_options.write("Fetch reactions")
+        max_reactions = adv_options.number_input("Max number of reactions evaluated", value=20)
+        adv_options.divider()
+
         adv_options.write("Fetch genes")
-        proteins_per_reaction = adv_options.number_input("Max number of proteins fetched per reaction", value=25)
+        proteins_per_reaction = adv_options.number_input("Max number of proteins fetched per reaction", value=20)
         reviewed = adv_options.checkbox("Reviewed only", value=True)
         adv_options.divider()
 
         adv_options.write("Fetch operons")
-        max_operons = adv_options.number_input("Max number of operons surveyed", value=20)
+        max_operons = adv_options.number_input("Max number of operons evaluated", value=20)
         lineage_filter_name = adv_options.selectbox("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "Genus"], index=4)
         adv_options.divider()
 
         adv_options.write("Fetch regulators")
         alt_ligands = adv_options.checkbox("Get alternative ligands", value=False)
         protein_seq = adv_options.checkbox("Get protein sequence", value=False)
-        operator_seq = adv_options.checkbox("Get candidate operator sequence", value=False)
 
-        filters = {"reviewed": reviewed, "lineage": lineage_filter_name, "proteins_per_reaction": proteins_per_reaction, "max_operons": max_operons}
+        filters = { 
+                    "max_reactions": max_reactions,
+                    "proteins_per_reaction": proteins_per_reaction, 
+                    "reviewed": reviewed, 
+                    "lineage": lineage_filter_name, 
+                    "max_operons": max_operons,
+                    }
 
 
 
@@ -205,16 +208,19 @@ def run_ligify(chem, regulator_column, data_column, progress, chemical_smiles, f
     if st.session_state.SUBMITTED:
 
 
-        # SMILES = get_smiles(str(chemical_smiles))
-        # chem.image(f'http://hulab.rxnfinder.org/smi2img/{SMILES}/', width=300)
-
+        # SMILES = str(chemical_smiles)
+        # chem.image(f'http://hulab.rxnfinder.org/smi2img/{SMILES}/', width=200)
 
 
         regulators = fetch_data(chemical_smiles, filters)
-        # if os.path.exists("./ligify/temp/"+str(chemical_name)+".json"):
-        #     with open("./ligify/temp/"+str(chemical_name)+".json", "r") as f:
-        #         regulators = json.load(f)
-        #         print("loaded cached reg data")
+
+        select_spacerL, please_select, select_spacerR  = data_column.container().columns([1,2,1])
+        if not st.session_state.data:
+            please_select.subheader("Please select a regulator")
+        else:
+            if regulators == None:
+                please_select.subheader("Consider an alternative query")         
+
 
         format_display(data_column)
 
@@ -222,7 +228,9 @@ def run_ligify(chem, regulator_column, data_column, progress, chemical_smiles, f
         regulator_column.divider()
 
         if regulators == None:
+            similar_chemicals = blast_chemical(chemical_smiles)
             regulator_column.write("No regulators found")
+            data_column.write(similar_chemicals)
             
         else:
             for i in range(0, len(regulators)):
