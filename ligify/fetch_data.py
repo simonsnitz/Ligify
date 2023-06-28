@@ -15,18 +15,19 @@ def fetch_data(smiles, filters):
     prog_spacerL, prog, prog_spacerR = prog_container.columns((1,1,1))
     st.spinner("Processing")
 
-
+    metrics = {}
 
     # FETCH REACTIONS
 
     prog_bar = prog.progress(0, text="1. Fetching reaction IDs")
     reactions = fetch_reactions(smiles = smiles, max_reactions = filters["max_reactions"])
+    total_rxns = len(reactions["rxn_data"])
+    metrics["RHEA Reactions"] = total_rxns
 
-    if len(reactions["rxn_data"]) > 0:
+    if total_rxns > 0:
 
         # FETCH GENES
 
-        total_rxns = len(reactions["rxn_data"])
         prog_bar_increment = 20/int(total_rxns)
 
         counter = 0
@@ -37,12 +38,11 @@ def fetch_data(smiles, filters):
             i["proteins"] = associated_proteins
             counter += 1
 
-
+        metrics["Total genes"] = sum([len(i["proteins"]) for i in reactions["rxn_data"]])
 
         # Filter homologous genes
         reactions = filter_genes(reactions, lineage_filter_name = filters["lineage"])
-
-
+        metrics["Filtered genes"] = sum([len(i["proteins"]) for i in reactions["rxn_data"]])
 
         # FETCH OPERONS
 
@@ -50,7 +50,7 @@ def fetch_data(smiles, filters):
             print("No enzymes found for "+str(smiles))
             pass
         else:
-            counter = 0
+            operon_counter = 0
 
             # Get the total number of valid protein entries for operon fetching
             # This can be shortened using list comprehension
@@ -70,19 +70,20 @@ def fetch_data(smiles, filters):
                     if refseq_id != None:
 
                         # Limit number of operons evaluated to avoid program taking too long to complete.
-                        if counter <= filters["max_operons"]:
-                            prog_value = int(30+counter*prog_bar_increment)
+                        if operon_counter <= filters["max_operons"]:
+                            prog_value = int(30+operon_counter*prog_bar_increment)
 
-                            prog_bar.progress(prog_value, text=f"3. Fetching operon for gene {str(counter+1)} of {str(total_genes)} ({refseq_id})")
+                            prog_bar.progress(prog_value, text=f"3. Fetching operon for gene {str(operon_counter+1)} of {str(total_genes)} ({refseq_id})")
                             protein["context"] = acc2operon(refseq_id)
-                            counter += 1
+                            operon_counter += 1
 
+            metrics["Total operons"] = operon_counter
 
 
             # FETCH REGULATORS
 
             if reactions == None:
-                prog_bar.progress(100, text="Complete.")
+                prog_bar.empty()
                 return None
             
             else:
@@ -104,13 +105,15 @@ def fetch_data(smiles, filters):
                             regulators.append(r)
                         counter += 1
 
-
+                metrics["Total regulators"] = len(regulators)
                 prog_bar.empty()
 
                 if regulators == None or len(regulators) == 0:
-                    return None
+
+                    return None, None
                 else:
-                    return regulators
+                    return regulators, metrics
     else:
-        return None
+        prog_bar.empty()
+        return None, None
 

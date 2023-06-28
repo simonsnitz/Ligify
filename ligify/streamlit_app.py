@@ -107,9 +107,9 @@ def run_streamlit():
 
 
     if input_mode == 'SMILES':
-        smiles = head2.text_input("", "C=CC(=O)[O-]", label_visibility="collapsed")
+        smiles = head2.text_input(label="Chemical SMILES", value="C=CC(=O)[O-]", label_visibility="collapsed")
     elif input_mode == 'Name':
-        chemical_name = head2.text_input("", "Acrylate", label_visibility="collapsed")
+        chemical_name = head2.text_input(label="Chemical name", value="Acrylate", label_visibility="collapsed")
         smiles = get_smiles(chemical_name)
     elif input_mode == 'Draw':
         with col2:
@@ -122,7 +122,7 @@ def run_streamlit():
 
         st.write("Bacteria respond to chemical cues using protein transcription regulators.")
 
-        st.write("Ligify is a search tool used to find regulators responsive to user-defined metabolites.")
+        st.write("Ligify is a search tool used to mine regulators responsive to user-defined metabolites.")
 
         # GitHub and Email links
         st.markdown("<p style='font-size: 12px'>If you have any questions or would like to report any bugs, please contact us via <a href='mailto: simonsnitz@gmail.com'>Email</a>. \
@@ -158,6 +158,7 @@ def run_streamlit():
         adv_options.write("Fetch regulators")
         alt_ligands = adv_options.checkbox("Get alternative ligands", value=False)
         protein_seq = adv_options.checkbox("Get protein sequence", value=False)
+        max_alt_chems = adv_options.number_input("Max number of alternative suggested chemicals", value=10)
 
         filters = { 
                     "max_reactions": max_reactions,
@@ -165,6 +166,7 @@ def run_streamlit():
                     "reviewed": reviewed, 
                     "lineage": lineage_filter_name, 
                     "max_operons": max_operons,
+                    "max_alt_chems": max_alt_chems,
                     }
 
 
@@ -189,12 +191,9 @@ def run_streamlit():
 
         # RESULTS
         results = st.container()
-        regulator_column, data_column = results.columns([1,3])
 
 
-        return chem, regulator_column, data_column, prog, smiles, filters
-
-
+        return chem, results, prog, smiles, filters
 
 
 
@@ -203,40 +202,55 @@ def run_streamlit():
 
 
 
-def run_ligify(chem, regulator_column, data_column, progress, chemical_smiles, filters):
+
+
+def run_ligify(chem, results, progress, chemical_smiles, filters):
+
+    m_spacer1, metrics_col, m_spacer2 = results.container().columns((1,3,1))
+    regulator_column, data_column = results.columns([1,3])
 
     if st.session_state.SUBMITTED:
 
+        if chemical_smiles == None:
+            data_column.subheader("Chemical input was not recognized. Please try a different input method.")
 
-        # SMILES = str(chemical_smiles)
-        # chem.image(f'http://hulab.rxnfinder.org/smi2img/{SMILES}/', width=200)
-
-
-        regulators = fetch_data(chemical_smiles, filters)
-
-        select_spacerL, please_select, select_spacerR  = data_column.container().columns([1,2,1])
-        if not st.session_state.data:
-            please_select.subheader("Please select a regulator")
         else:
+
+            # SMILES = str(chemical_smiles)
+            # chem.image(f'http://hulab.rxnfinder.org/smi2img/{SMILES}/', width=200)
+
+            regulators, metrics = fetch_data(chemical_smiles, filters)
+
+            select_spacerL, please_select, select_spacerR  = data_column.container().columns([1,2,1])
+            # if not st.session_state.data:      
+
+
+            format_display(data_column)
+
+            regulator_column.header('')
+            regulator_column.subheader('')
+            regulator_column.subheader('Sensor candidates')
+            regulator_column.divider()
+
             if regulators == None:
-                please_select.subheader("Consider an alternative query")         
+                similar_chemicals = blast_chemical(chemical_smiles, filters["max_alt_chems"])
+                regulator_column.write("No regulators found")
+                please_select.subheader("No associated reactions   :pensive:") 
+                please_select.write("Consider an alternative query")   
+                data_column.dataframe(similar_chemicals)
+                
+            else:
 
+                # Metrics Table
+                metrics_col.subheader("Metrics")
+                metrics_col.dataframe([metrics])
+                metrics_col.divider()
 
-        format_display(data_column)
-
-        regulator_column.subheader(f'{chemical_smiles} sensor candidates')
-        regulator_column.divider()
-
-        if regulators == None:
-            similar_chemicals = blast_chemical(chemical_smiles)
-            regulator_column.write("No regulators found")
-            data_column.write(similar_chemicals)
-            
-        else:
-            for i in range(0, len(regulators)):
-                name = "var"+str(i)
-                name = regulator_column.form_submit_button(regulators[i]['refseq'])
-                if name:
-                    st.session_state.data = regulators[i]
-                    st.experimental_rerun()
+                please_select.subheader("Please select a regulator") 
+                for i in range(0, len(regulators)):
+                    name = "var"+str(i)
+                    name = regulator_column.form_submit_button(regulators[i]['refseq'])
+                    if name:
+                        st.session_state.data = regulators[i]
+                        st.experimental_rerun()
 
