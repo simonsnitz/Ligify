@@ -158,9 +158,9 @@ def run_streamlit():
         adv_options.divider()
 
         adv_options.write("Fetch regulators")
-        alt_ligands = adv_options.checkbox("Get alternative ligands", value=True)
-        protein_seq = adv_options.checkbox("Get protein sequence", value=True)
-        operator_seq = adv_options.checkbox("Get candidate operator sequence", value=True)
+        alt_ligands = adv_options.checkbox("Get alternative ligands", value=False)
+        protein_seq = adv_options.checkbox("Get protein sequence", value=False)
+        operator_seq = adv_options.checkbox("Get candidate operator sequence", value=False)
 
         filters = {"reviewed": reviewed, "lineage": lineage_filter_name, "proteins_per_reaction": proteins_per_reaction, "max_operons": max_operons}
 
