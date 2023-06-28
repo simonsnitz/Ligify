@@ -99,7 +99,7 @@ def run_streamlit():
 
     # HEADER
     head = st.container()
-    head1, head2, head3 = head.columns(3)
+    head1, head2, head3 = head.columns((1,2,1))
 
     head2.markdown("<h1 style='text-align: center; color: black;'>Ligify</h1>", unsafe_allow_html=True)
     head2.subheader('Predict sensors responsive to an input ligand')
@@ -122,25 +122,45 @@ def run_streamlit():
 
 
 
-    with col2.expander("Advanced options"):
+    with st.sidebar:
+
+        st.write("Bacteria respond to chemical cues using protein transcription regulators.")
+
+        st.write("Regulators can be repurposed into chemical-responsive tools for Synthetic Biology.")
+
+        st.write("Ligify is a search tool used to find regulators responsive to user-defined metabolites.")
+
+        # GitHub and Email links
+        st.markdown("<p style='font-size: 12px'>If you have any questions or would like to report any bugs, please contact us via <a href='mailto: simonsnitz@gmail.com'>Email</a>. \
+            Our code is publically available on <a href='https://github.com/simonsnitz/Ligify'>GitHub</a>.</p>", unsafe_allow_html=True)
+
+        #st.markdown("<div style='font-size: 12px;'>d'Oelsnitz S., Stofel S.K., and Ellington A.D. (2023) Snowprint: a predictive tool for genetic biosensor discovery. \
+        #            <i>bioRxiv</i> <b>DOI:</b><a href='https://www.biorxiv.org/content/10.1101/2023.04.29.538814v1'>10.1101/2023.04.29.538814v1</a></div> <br>", unsafe_allow_html=True)
+
+        st.markdown("<p style='font-size: 12px'>Ligify development was supported by the National Institute of Standards and Technology (70NANB21H100)", unsafe_allow_html=True)
+
+        st.divider()
 
         adv_options = st.container()
+        adv_options.header("Advanced options")
+
         adv_options.write("Editing these changes processing time and data returned")
-        option1, option2, option3, option4 = adv_options.columns((1,2,2,2))
+        adv_options.divider()
 
+        adv_options.write("Fetch genes")
+        proteins_per_reaction = adv_options.number_input("Max number of proteins fetched per reaction", value=25)
+        reviewed = adv_options.checkbox("Reviewed only", value=True)
+        adv_options.divider()
 
-        option2.write("Fetch genes")
-        proteins_per_reaction = option2.number_input("Max number of proteins fetched per reaction", value=25)
-        reviewed = option2.checkbox("Reviewed only", value=True)
+        adv_options.write("Fetch operons")
+        max_operons = adv_options.number_input("Max number of operons surveyed", value=20)
+        lineage_filter_name = adv_options.selectbox("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "Genus"], index=4)
+        adv_options.divider()
 
-        option3.write("Fetch operons")
-        max_operons = option3.number_input("Max number of operons surveyed", value=20)
-        lineage_filter_name = option3.selectbox("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "Genus"], index=4)
-
-        option4.write("Fetch regulators")
-        alt_ligands = option4.checkbox("Get alternative ligands", value=True)
-        protein_seq = option4.checkbox("Get protein sequence", value=True)
-        operator_seq = option4.checkbox("Get candidate operator sequence", value=True)
+        adv_options.write("Fetch regulators")
+        alt_ligands = adv_options.checkbox("Get alternative ligands", value=True)
+        protein_seq = adv_options.checkbox("Get protein sequence", value=True)
+        operator_seq = adv_options.checkbox("Get candidate operator sequence", value=True)
 
         filters = {"reviewed": reviewed, "lineage": lineage_filter_name, "proteins_per_reaction": proteins_per_reaction, "max_operons": max_operons}
 
@@ -167,9 +187,6 @@ def run_streamlit():
         # RESULTS
         results = st.container()
         regulator_column, data_column = results.columns([1,3])
-
-
-
 
 
         return chem, regulator_column, data_column, prog, smiles, filters
