@@ -7,9 +7,25 @@ def format_display(data_column):
 
     if st.session_state.data:
 
-        # Regulator info
+        # Header
         refseq = st.session_state.data['refseq']
         annotation = st.session_state.data['annotation'] 
+        data_column.markdown(f'<h1 style="text-align: center; color: black; margin-top: -50px;">{refseq}</h1>', unsafe_allow_html=True)
+        data_column.markdown(f'<h3 style="text-align: center; color: black;">{annotation}</h3>', unsafe_allow_html=True)
+
+        data_column.divider()
+
+
+        # Spacer
+        data_column.text("")
+        data_column.text("")
+
+
+        # Regulator info
+
+
+        # Regulator sequence
+
 
         # Enzyme info
         enz_annotation = st.session_state.data['protein']['enzyme']['description']
@@ -26,30 +42,6 @@ def format_display(data_column):
                     "refseq": enz_refseq,
                     "rhea_id": rhea_id}
 
-        # Organism info
-        genome_id = st.session_state.data['protein']['context']['genome'] 
-        org_json = {"name": "organism attribute",
-            "genome_id": genome_id}
-
-        phylogeny_names = ["kingdom", "phylum", "class", "order", "family", "genus"]
-        for i in range(0, len(st.session_state.data["protein"]["organism"])):
-            org_json[phylogeny_names[i]] = st.session_state.data["protein"]["organism"][i]
-
-
-
-        data_column.markdown(f'<h1 style="text-align: center; color: black; margin-top: -50px;">{refseq}</h1>', unsafe_allow_html=True)
-        data_column.markdown(f'<h3 style="text-align: center; color: black;">{annotation}</h3>', unsafe_allow_html=True)
-
-
-        data_column.divider()
-
-
-        # Spacer
-        data_column.text("")
-        data_column.text("")
-
-
-        # Enzyme info
         enzyme_and_org = data_column.container()
         enz, org = enzyme_and_org.columns([1,1])
         enz_df = pd.DataFrame(enz_json, index=[0])
@@ -64,6 +56,13 @@ def format_display(data_column):
 
 
         # Organism info
+        genome_id = st.session_state.data['protein']['context']['genome'] 
+        org_json = {"name": "organism attribute",
+            "genome_id": genome_id}
+        phylogeny_names = ["kingdom", "phylum", "class", "order", "family", "genus", "species"]
+        for i in range(0, len(st.session_state.data["protein"]["organism"])):
+            org_json[phylogeny_names[i]] = st.session_state.data["protein"]["organism"][i]
+
         org_df = pd.DataFrame(org_json, index=[0])
         org_df.set_index("name", inplace=True)
         org_df = org_df.T
