@@ -48,7 +48,7 @@ def fetch_data(smiles, filters):
 
         if len(reactions["rxn_data"]) == 0:
             print("No enzymes found for "+str(smiles))
-            pass
+            return None, None
         else:
             operon_counter = 0
 
@@ -84,7 +84,7 @@ def fetch_data(smiles, filters):
 
             if reactions == None:
                 prog_bar.empty()
-                return None
+                return None, None
             
             else:
                 total_regs = 0
@@ -93,6 +93,8 @@ def fetch_data(smiles, filters):
                         total_regs += 1
                 prog_bar_increment = 20/int(total_regs)
 
+
+                # This is where all of the display data is created
                 counter = 0
                 regulators = []
                 for rxn in reactions["rxn_data"]:
@@ -108,11 +110,19 @@ def fetch_data(smiles, filters):
                 metrics["Total regulators"] = len(regulators)
                 prog_bar.empty()
 
-                if regulators == None or len(regulators) == 0:
+                # Filter out duplicate regulators
+                refseq_ids = []
+                filtered_regulators = []
+                for i in regulators:
+                    if i["refseq"] not in refseq_ids:
+                        filtered_regulators.append(i)
+                        refseq_ids.append(i["refseq"])
 
+
+                if filtered_regulators == None or len(filtered_regulators) == 0:
                     return None, None
                 else:
-                    return regulators, metrics
+                    return filtered_regulators, metrics
     else:
         prog_bar.empty()
         return None, None
