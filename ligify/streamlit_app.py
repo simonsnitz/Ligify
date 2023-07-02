@@ -263,9 +263,14 @@ def run_ligify(chem, results, progress, chemical, filters):
                 if not st.session_state.data:
                     please_select.subheader("Please select a regulator") 
 
+                reg_acc, rank = regulator_column.columns((2,1))
+                reg_acc.markdown("<h5>Regulator</h5>", unsafe_allow_html=True)
+                rank.markdown("<h5>Rank</h5>", unsafe_allow_html=True)
+
                 for i in range(0, len(regulators)):
                     name = "var"+str(i)
-                    name = regulator_column.form_submit_button(regulators[i]['refseq'])
+                    rank.markdown("<p style='font-size:20px; color: orange;'>43</p>", unsafe_allow_html=True)
+                    name = reg_acc.form_submit_button(regulators[i]['refseq'])
                     if name:
                         st.session_state.data = regulators[i]
                         st.experimental_rerun()

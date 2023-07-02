@@ -47,7 +47,7 @@ def format_display(data_column):
         reg_genbank.header("")
         reg_genbank.header("")
         reg_genbank.form_submit_button(label="Download Plasmid", type="primary")
-        reg_genbank.markdown(f'<p style="font-size: 16px">This plasmid is designed to induce GFP expression in the presence of the target molecule via '+str(refseq)+'</>', unsafe_allow_html=True)
+        reg_genbank.markdown(f'<p style="font-size: 16px">This plasmid is designed to induce GFP expression in the presence of the target molecule via '+str(refseq)+', within E. coli</>', unsafe_allow_html=True)
 
         # TODO:
             # MAKE A FUNCTIONAL DOWNLOAD BUTTON
@@ -70,11 +70,11 @@ def format_display(data_column):
         references = st.session_state.data['protein']['enzyme']['dois']
 
         enz_json = {"name": "Enzyme attribute",
-                    "annotation": enz_annotation,
-                    "equation": equation,
-                    "uniprot": enz_uniprot,
-                    "refseq": enz_refseq,
-                    "rhea_id": rhea_id,
+                    "Annotation": enz_annotation,
+                    "Reaction": equation,
+                    "RHEA ID": rhea_id,
+                    "Uniprot ID": enz_uniprot,
+                    "RefSeq ID": enz_refseq,
                     }
 
         enzyme_and_org = data_column.container()
@@ -85,28 +85,17 @@ def format_display(data_column):
         enz.subheader("Associated enzyme")
         enz.table(enz_df)
 
-        enz.text("Literature references")
+        enzyme_and_org.subheader("Enzyme references")
         for i in references:
-            enz.markdown(f'<a target="__blank">{"https://doi.org/"+i}</a>', unsafe_allow_html=True)
+            enzyme_and_org.markdown(f'<a target="__blank">{"https://doi.org/"+i}</a>', unsafe_allow_html=True)
 
 
-        # Organism info
-        # genome_id = st.session_state.data['protein']['context']['genome'] 
-        # org_json = {"name": "organism attribute",
-        #     "genome_id": genome_id}
-        # phylogeny_names = ["kingdom", "phylum", "class", "order", "family", "genus", "species"]
-        # for i in range(0, len(st.session_state.data["protein"]["organism"])):
-        #     org_json[phylogeny_names[i]] = st.session_state.data["protein"]["organism"][i]
-
-        # org_df = pd.DataFrame(org_json, index=[0])
-        # org_df.set_index("name", inplace=True)
-        # org_df = org_df.T
 
 
         # Alternative ligands
         alt_lig.subheader("Possible alternative ligands")
         alt_lig.table(st.session_state.data['alt_ligands'])
-
+            #TODO: Clean this table up
 
         # Spacer
         data_column.text("")
@@ -127,6 +116,13 @@ def format_display(data_column):
                 break
             else:
                 reg_index += 1
+        # Get the enzyme position within the operon
+        enz_index = 0
+        for i in operon_json:
+            if i["accession"] == enz_refseq:
+                break
+            else:
+                enz_index += 1
 
 
         for i in operon_json:
@@ -156,6 +152,8 @@ def format_display(data_column):
         def bg_color_col(col):
             return ['background-color: %s' % "#b3ffb0"
                         if i==reg_index
+                        else 'background-color: %s' % "#e6cffc"
+                        if i ==enz_index
                         else ''
                     for i,x in col.items()]
         operon_df = operon_df.style.apply(bg_color_col)
