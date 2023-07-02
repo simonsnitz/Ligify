@@ -1,9 +1,8 @@
 import requests
 import json
 from pprint import pprint
-from ligify.predict.pubchem import get_inchiKey
 import time
-# from pubchem import get_inchiKey
+
 
 
 # TODO:
@@ -13,12 +12,9 @@ import time
 
 
     # May want to get this info from Pubchem rather than Rhea, to avoid converting to the InChiKey
-def fetch_reactions(smiles: str, max_reactions: int):
+def fetch_reactions(InChiKey: str, max_reactions: int):
 
-        # get rhea ids from chemical
-    InChiKey = get_inchiKey(str(smiles), "smiles")
-    print(InChiKey)
-
+    # Get rhea ids from chemical
     url= "https://www.rhea-db.org/rhea?"
     parameter = {
     "query":'InChiKey:'+str(InChiKey),

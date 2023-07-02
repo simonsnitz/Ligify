@@ -77,7 +77,7 @@ def fetch_reg_data(accession: str):
 
 
 
-def pull_regulators(protein, chemical_name, rxn):
+def pull_regulators(protein, rxn):
 
 
     regulator = re.compile(r"regulator|repressor|activator")
@@ -109,7 +109,7 @@ def pull_regulators(protein, chemical_name, rxn):
                                 if "catalysis" in protein_data.keys():
                                     ligand_names += protein_data["catalysis"].split(" ")
                         unique_ligands = list(set(ligand_names))
-                        not_ligands = ["H2O", "+", "-", "=", "A", "AH2", "H(+)", "NADPH", "NADH", "NADP(+)", "NAD(+)", str(chemical_name).lower()]
+                        not_ligands = ["H2O", "+", "-", "=", "A", "AH2", "H(+)", "NADPH", "NADH", "NADP(+)", "NAD(+)"]
                         unique_ligands = [ i for i in unique_ligands if i not in not_ligands]
 
                         entry['alt_ligands'] = unique_ligands

@@ -8,7 +8,7 @@ from ligify.predict.accID2operon import acc2operon
 
 
 @st.cache_data
-def fetch_data(smiles, filters):
+def fetch_data(InChiKey, filters):
 
 
     prog_container = st.container()
@@ -20,7 +20,7 @@ def fetch_data(smiles, filters):
     # FETCH REACTIONS
 
     prog_bar = prog.progress(0, text="1. Fetching reaction IDs")
-    reactions = fetch_reactions(smiles = smiles, max_reactions = filters["max_reactions"])
+    reactions = fetch_reactions(InChiKey = InChiKey, max_reactions = filters["max_reactions"])
     total_rxns = len(reactions["rxn_data"])
     metrics["RHEA Reactions"] = total_rxns
 
@@ -47,7 +47,7 @@ def fetch_data(smiles, filters):
         # FETCH OPERONS
 
         if len(reactions["rxn_data"]) == 0:
-            print("No enzymes found for "+str(smiles))
+            print("No enzymes found")
             return None, None
         else:
             operon_counter = 0
@@ -102,7 +102,7 @@ def fetch_data(smiles, filters):
                         prog_value = int(80+counter*prog_bar_increment)
                         prog_bar.progress(prog_value, text=f"4. Fetching data for regulator {str(counter+1)} of {str(total_rxns)} ({protein['organism'][-2]}, {protein['organism'][-1]})")
 
-                        regs = pull_regulators(protein, smiles, rxn)
+                        regs = pull_regulators(protein, rxn)
                         for r in regs:
                             regulators.append(r)
                         counter += 1

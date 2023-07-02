@@ -7,7 +7,7 @@ from ligify import __version__ as ligify_version
 from ligify.regulator_info import format_display
 from ligify.fetch_data import fetch_data
 from ligify.predict.database.chemical_db import blast_chemical
-from ligify.predict.pubchem import get_smiles
+from ligify.predict.pubchem import get_smiles, get_inchikey, get_name
 
 
 
@@ -108,12 +108,22 @@ def run_streamlit():
 
     if input_mode == 'SMILES':
         smiles = head2.text_input(label="Chemical SMILES", value="C=CC(=O)[O-]", label_visibility="collapsed")
+        chemical_name = get_name(smiles)
+        InChiKey = get_inchikey(smiles, "smiles")
+        chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
+
     elif input_mode == 'Name':
         chemical_name = head2.text_input(label="Chemical name", value="Acrylate", label_visibility="collapsed")
         smiles = get_smiles(chemical_name)
+        InChiKey = get_inchikey(chemical_name, "name")
+        chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
+
     elif input_mode == 'Draw':
         with col2:
             smiles = st_ketcher("C=CC(=O)[O-]", height=400)
+            chemical_name = get_name(smiles)
+            InChiKey = get_inchikey(chemical_name, "name")
+            chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
 
 
 
@@ -193,7 +203,7 @@ def run_streamlit():
         results = st.container()
 
 
-        return chem, results, prog, smiles, filters
+        return chem, results, prog, chemical, filters
 
 
 
@@ -204,14 +214,14 @@ def run_streamlit():
 
 
 
-def run_ligify(chem, results, progress, chemical_smiles, filters):
+def run_ligify(chem, results, progress, chemical, filters):
 
     m_spacer1, metrics_col, m_spacer2 = results.container().columns((1,3,1))
     regulator_column, data_column = results.columns([1,3])
 
     if st.session_state.SUBMITTED:
 
-        if chemical_smiles == None:
+        if chemical["smiles"] == None:
             data_column.subheader("Chemical input was not recognized. Please try a different input method.")
 
         else:
@@ -219,7 +229,7 @@ def run_ligify(chem, results, progress, chemical_smiles, filters):
             # SMILES = str(chemical_smiles)
             # chem.image(f'http://hulab.rxnfinder.org/smi2img/{SMILES}/', width=200)
 
-            regulators, metrics = fetch_data(chemical_smiles, filters)
+            regulators, metrics = fetch_data(chemical["InChiKey"], filters)
 
             select_spacerL, please_select, select_spacerR  = data_column.container().columns([1,2,1])
             # if not st.session_state.data:      
@@ -234,7 +244,7 @@ def run_ligify(chem, results, progress, chemical_smiles, filters):
 
             # If no regulators are returned, suggest alternative queries
             if regulators == None:
-                similar_chemicals = blast_chemical(chemical_smiles, filters["max_alt_chems"])
+                similar_chemicals = blast_chemical(chemical["smiles"], filters["max_alt_chems"])
                 regulator_column.write("No regulators found")
                 please_select.subheader("No associated reactions   :pensive:") 
                 please_select.write("Consider an alternative query")   

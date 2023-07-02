@@ -1,6 +1,6 @@
 import requests
 
-def get_inchiKey(input, prop):
+def get_inchikey(input, prop):
 
     if prop == "name":
         URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/"+str(input)+"/property/InChiKey/TXT"
@@ -22,9 +22,16 @@ def get_inchiKey(input, prop):
      
 
 def get_smiles(input):
-
     URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/"+str(input)+"/property/CanonicalSMILES/TXT"
+    response = requests.get(URL)
+    if response.ok:
+            # get the first entry
+        out = response.text.split("\n")[0]
+        return out
 
+
+def get_name(smiles):
+    URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/SMILES/"+str(smiles)+"/property/IUPACname/TXT"
     response = requests.get(URL)
     if response.ok:
             # get the first entry
@@ -50,5 +57,7 @@ if __name__ == "__main__":
     # out = get_smiles("isovalerate")
     # print(out)
 
-    out = check_url("http://hulab.rxnfinder.org/smi2img/3")
-    print(out)
+    print(get_name("CC=CC1=CC(=C(C=C1)O)OC"))
+
+    #out = check_url("http://hulab.rxnfinder.org/smi2img/3")
+    #print(out)
