@@ -166,9 +166,7 @@ def run_streamlit():
         adv_options.divider()
 
         adv_options.write("Fetch regulators")
-        alt_ligands = adv_options.checkbox("Get alternative ligands", value=False)
-        protein_seq = adv_options.checkbox("Get protein sequence", value=False)
-        max_alt_chems = adv_options.number_input("Max number of suggested chemicals", value=10)
+        max_alt_chems = adv_options.number_input("Max suggested chemicals if failed", value=10)
 
         filters = { 
                     "max_reactions": max_reactions,
@@ -251,7 +249,7 @@ def run_ligify(chem, results, progress, chemical, filters):
                 
             # If regulators are returned, format display
             else:
-                
+
                 # Metrics data
                 metrics_col.subheader("Search metrics")
                 m_rhea, m_genes, m_filtered, m_operons, m_regs = metrics_col.columns(5)

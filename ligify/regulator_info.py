@@ -44,8 +44,10 @@ def format_display(data_column):
         reg_info.subheader("Regulator information")
         reg_info.table(regulator_df)
 
+        reg_genbank.header("")
+        reg_genbank.header("")
         reg_genbank.form_submit_button(label="Download Plasmid", type="primary")
-        reg_genbank.markdown(f'<p style="font-size: 16px">This plasmid is designed to induce GFP expression in the presence of the target molecule using the '+str(refseq)+' regulator</>', unsafe_allow_html=True)
+        reg_genbank.markdown(f'<p style="font-size: 16px">This plasmid is designed to induce GFP expression in the presence of the target molecule via '+str(refseq)+'</>', unsafe_allow_html=True)
 
         # TODO:
             # MAKE A FUNCTIONAL DOWNLOAD BUTTON
@@ -65,7 +67,6 @@ def format_display(data_column):
         enz_refseq = st.session_state.data['protein']['enzyme']['ncbi_id']
         equation = st.session_state.data['equation'] 
         rhea_id = st.session_state.data['rhea_id'] 
-        alt_ligands = st.session_state.data['alt_ligands'][0] 
         references = st.session_state.data['protein']['enzyme']['dois']
 
         enz_json = {"name": "Enzyme attribute",
@@ -74,7 +75,7 @@ def format_display(data_column):
                     "uniprot": enz_uniprot,
                     "refseq": enz_refseq,
                     "rhea_id": rhea_id,
-                    "alt_ligands": alt_ligands}
+                    }
 
         enzyme_and_org = data_column.container()
         enz, alt_lig = enzyme_and_org.columns([1,1])
@@ -165,18 +166,13 @@ def format_display(data_column):
         # Operon sequence
         operon_seq = data_column.container()
         operon_seq.subheader("Operon sequence")
+        with operon_seq.expander(label="full operon seqeunce"):
+
+            st.write("Operon seq goes here")
+            st.subheader("Predicted promoter")
         # Add a dropdown for the full operon sequence (from Toolkit)
             # Also add a section indicating the predicted promoter
 
-
-        # Alternative ligands
-        alt_ligs = data_column.container()
-        alt_ligs.subheader("Possible alternative ligands")
-        
-        st.table(st.session_state.data['alt_ligands'])
-
-        # alt_ligs_df = pd.DataFrame(st.session_state.data['alt_ligands'], index=[0])
-        # alt_ligs.table(alt_ligs_df)
         
 
 
