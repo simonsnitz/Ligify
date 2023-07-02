@@ -251,15 +251,15 @@ def run_ligify(chem, results, progress, chemical, filters):
                 
             # If regulators are returned, format display
             else:
-                # Metrics Table
-                metrics_col.subheader("Search metrics")
-
                 
-
-                metrics_col.dataframe([metrics])
-
-
-
+                # Metrics data
+                metrics_col.subheader("Search metrics")
+                m_rhea, m_genes, m_filtered, m_operons, m_regs = metrics_col.columns(5)
+                m_rhea.metric("Rhea reactions", metrics["RHEA Reactions"])
+                m_genes.metric("Bacterial genes", metrics["Total genes"])
+                m_filtered.metric("Filtered genes", metrics["Filtered genes"])
+                m_operons.metric("Operons", metrics["Total operons"])
+                m_regs.metric("Regulators", metrics["Total regulators"])
                 metrics_col.divider()
 
                 if not st.session_state.data:
