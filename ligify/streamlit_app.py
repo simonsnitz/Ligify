@@ -238,7 +238,6 @@ def run_ligify(chem, results, progress, chemical, filters):
             format_display(data_column)
 
             regulator_column.header('')
-            regulator_column.subheader('')
             regulator_column.subheader('Sensor candidates')
             regulator_column.divider()
 
@@ -254,7 +253,13 @@ def run_ligify(chem, results, progress, chemical, filters):
             else:
                 # Metrics Table
                 metrics_col.subheader("Search metrics")
+
+                
+
                 metrics_col.dataframe([metrics])
+
+
+
                 metrics_col.divider()
 
                 if not st.session_state.data:

@@ -23,16 +23,17 @@ def format_display(data_column):
 
         # Regulator info
         reg_ncbi_anno = st.session_state.data["annotation"]
-        reg_uniprot_anno = st.session_state.data["uniprot_reg_data"]["annotation"]
         reg_uniprot_id = st.session_state.data["uniprot_reg_data"]["id"]
         reg_length = st.session_state.data["uniprot_reg_data"]["length"]
+        organism = st.session_state.data["protein"]["organism"]
+        organism_name = str(organism[-2])+", "+str(organism[-1])
 
         reg_json = {
             "name": "Regulator attribute",
             "NCBI annotation": reg_ncbi_anno,
-            "Uniprot annotation": reg_uniprot_anno,
             "Uniprot ID": reg_uniprot_id,
-            "Protein length": reg_length
+            "Protein length": reg_length,
+            "Organism": organism_name,
         }
         
         regulator_con = data_column.container()
@@ -46,7 +47,9 @@ def format_display(data_column):
         reg_genbank.form_submit_button(label="Download Plasmid", type="primary")
         reg_genbank.markdown(f'<p style="font-size: 16px">This plasmid is designed to induce GFP expression in the presence of the target molecule using the '+str(refseq)+' regulator</>', unsafe_allow_html=True)
 
-        
+        # TODO:
+            # MAKE A FUNCTIONAL DOWNLOAD BUTTON
+
         # download_button(
         #     label="Download Plasmid",
         #     data="genbank/pLigifyVprR.gb",
@@ -74,7 +77,7 @@ def format_display(data_column):
                     "alt_ligands": alt_ligands}
 
         enzyme_and_org = data_column.container()
-        enz, org = enzyme_and_org.columns([1,1])
+        enz, alt_lig = enzyme_and_org.columns([1,1])
         enz_df = pd.DataFrame(enz_json, index=[0])
         enz_df.set_index("name", inplace=True)
         enz_df = enz_df.T
@@ -87,18 +90,21 @@ def format_display(data_column):
 
 
         # Organism info
-        genome_id = st.session_state.data['protein']['context']['genome'] 
-        org_json = {"name": "organism attribute",
-            "genome_id": genome_id}
-        phylogeny_names = ["kingdom", "phylum", "class", "order", "family", "genus", "species"]
-        for i in range(0, len(st.session_state.data["protein"]["organism"])):
-            org_json[phylogeny_names[i]] = st.session_state.data["protein"]["organism"][i]
+        # genome_id = st.session_state.data['protein']['context']['genome'] 
+        # org_json = {"name": "organism attribute",
+        #     "genome_id": genome_id}
+        # phylogeny_names = ["kingdom", "phylum", "class", "order", "family", "genus", "species"]
+        # for i in range(0, len(st.session_state.data["protein"]["organism"])):
+        #     org_json[phylogeny_names[i]] = st.session_state.data["protein"]["organism"][i]
 
-        org_df = pd.DataFrame(org_json, index=[0])
-        org_df.set_index("name", inplace=True)
-        org_df = org_df.T
-        org.subheader("Host organism")
-        org.table(org_df)
+        # org_df = pd.DataFrame(org_json, index=[0])
+        # org_df.set_index("name", inplace=True)
+        # org_df = org_df.T
+
+
+        # Alternative ligands
+        alt_lig.subheader("Possible alternative ligands")
+        alt_lig.table(st.session_state.data['alt_ligands'])
 
 
         # Spacer
@@ -156,6 +162,22 @@ def format_display(data_column):
         operon.table(operon_df)
 
 
+        # Operon sequence
+        operon_seq = data_column.container()
+        operon_seq.subheader("Operon sequence")
+        # Add a dropdown for the full operon sequence (from Toolkit)
+            # Also add a section indicating the predicted promoter
+
+
+        # Alternative ligands
+        alt_ligs = data_column.container()
+        alt_ligs.subheader("Possible alternative ligands")
+        
+        st.table(st.session_state.data['alt_ligands'])
+
+        # alt_ligs_df = pd.DataFrame(st.session_state.data['alt_ligands'], index=[0])
+        # alt_ligs.table(alt_ligs_df)
+        
 
 
         # Spacer
