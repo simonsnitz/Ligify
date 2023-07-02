@@ -158,7 +158,7 @@ def run_streamlit():
         adv_options.write("Fetch regulators")
         alt_ligands = adv_options.checkbox("Get alternative ligands", value=False)
         protein_seq = adv_options.checkbox("Get protein sequence", value=False)
-        max_alt_chems = adv_options.number_input("Max number of alternative suggested chemicals", value=10)
+        max_alt_chems = adv_options.number_input("Max number of suggested chemicals", value=10)
 
         filters = { 
                     "max_reactions": max_reactions,
@@ -232,6 +232,7 @@ def run_ligify(chem, results, progress, chemical_smiles, filters):
             regulator_column.subheader('Sensor candidates')
             regulator_column.divider()
 
+            # If no regulators are returned, suggest alternative queries
             if regulators == None:
                 similar_chemicals = blast_chemical(chemical_smiles, filters["max_alt_chems"])
                 regulator_column.write("No regulators found")
@@ -239,14 +240,16 @@ def run_ligify(chem, results, progress, chemical_smiles, filters):
                 please_select.write("Consider an alternative query")   
                 data_column.dataframe(similar_chemicals)
                 
+            # If regulators are returned, format display
             else:
-
                 # Metrics Table
-                metrics_col.subheader("Metrics")
+                metrics_col.subheader("Search metrics")
                 metrics_col.dataframe([metrics])
                 metrics_col.divider()
 
-                please_select.subheader("Please select a regulator") 
+                if not st.session_state.data:
+                    please_select.subheader("Please select a regulator") 
+
                 for i in range(0, len(regulators)):
                     name = "var"+str(i)
                     name = regulator_column.form_submit_button(regulators[i]['refseq'])

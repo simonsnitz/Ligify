@@ -17,6 +17,7 @@ def fetch_reactions(smiles: str, max_reactions: int):
 
         # get rhea ids from chemical
     InChiKey = get_inchiKey(str(smiles), "smiles")
+    print(InChiKey)
 
     url= "https://www.rhea-db.org/rhea?"
     parameter = {

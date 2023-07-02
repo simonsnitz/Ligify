@@ -71,6 +71,8 @@ def protein2chemicals(accession: str):
 
 
     
+def fetch_reg_data(accession: str):
+    url = "https://rest.uniprot.org/uniprotkb/search?query="+accession+"&format=json"
 
 
 
@@ -97,6 +99,10 @@ def pull_regulators(protein, chemical_name, rxn):
                                     "rhea_id": rxn["rhea_id"],
                                     }
 
+                        ### This is where a Uniprot API query goes to fetch more info on the regulator.
+
+
+                        # Fetch possible alternative inducer molecules associated with the operon
                         for gene in operon:
                             protein_data = protein2chemicals(gene["accession"])
                             if isinstance(protein_data, dict):
