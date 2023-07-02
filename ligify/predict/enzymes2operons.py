@@ -1,12 +1,7 @@
 import json
 import re
 import requests
-
-
-
-#TODO:
-# Speed up protein2chemicals using Uniprot's SPARQL API?
-
+from pprint import pprint
 
 def protein2chemicals(accession: str):
     url = "https://rest.uniprot.org/uniprotkb/search?query="+accession+"&format=json"
@@ -73,7 +68,36 @@ def protein2chemicals(accession: str):
     
 def fetch_reg_data(accession: str):
     url = "https://rest.uniprot.org/uniprotkb/search?query="+accession+"&format=json"
+    response = requests.get(url)
 
+    try:
+        data = json.loads(response.text)["results"][0]
+
+        dois = []
+        for j in data['references']:
+            if "citationCrossReferences" in j["citation"]:
+                for k in j["citation"]["citationCrossReferences"]:
+                    if k["database"] == "DOI":
+                        doi = k["id"]
+                        title = j["citation"]["title"]
+                        break
+                dois.append({"doi":doi, "title": title})
+
+        regulator = {
+            "annotation": data['features'][0]['description'],
+            "id": data["primaryAccession"],
+            "references": dois,
+            "length": data["sequence"]["length"],
+        }
+    except:
+        regulator = {
+            "annotation": "No data available",
+            "id":  "No data available",
+            "references":  "No data available",
+            "length":  "No data available",
+        }
+
+    return regulator
 
 
 
@@ -100,7 +124,7 @@ def pull_regulators(protein, rxn):
                                     }
 
                         ### This is where a Uniprot API query goes to fetch more info on the regulator.
-
+                        entry["uniprot_reg_data"] = fetch_reg_data(gene["accession"])
 
                         # Fetch possible alternative inducer molecules associated with the operon
                         for gene in operon:
@@ -125,11 +149,13 @@ def pull_regulators(protein, rxn):
 
 if __name__ == "__main__":
 
-    with open("temp/all.json", "r") as f:
-        all_chemicals = json.load(f)
+    fetch_reg_data("ACP17972.1")
 
-        for chemical in all_chemicals:
-            print(chemical)
+    # with open("temp/all.json", "r") as f:
+    #     all_chemicals = json.load(f)
+
+    #     for chemical in all_chemicals:
+    #         print(chemical)
             # data = json.load(f)
 
             # regs = pull_regulators(data)

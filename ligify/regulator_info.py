@@ -9,9 +9,9 @@ def format_display(data_column):
 
         # Header
         refseq = st.session_state.data['refseq']
-        annotation = st.session_state.data['annotation'] 
+        data_column.write("")
+        data_column.write("")
         data_column.markdown(f'<h1 style="text-align: center; color: black; margin-top: -50px;">{refseq}</h1>', unsafe_allow_html=True)
-        data_column.markdown(f'<h3 style="text-align: center; color: black;">{annotation}</h3>', unsafe_allow_html=True)
 
         data_column.divider()
 
@@ -22,9 +22,38 @@ def format_display(data_column):
 
 
         # Regulator info
+        reg_ncbi_anno = st.session_state.data["annotation"]
+        reg_uniprot_anno = st.session_state.data["uniprot_reg_data"]["annotation"]
+        reg_uniprot_id = st.session_state.data["uniprot_reg_data"]["id"]
+        reg_length = st.session_state.data["uniprot_reg_data"]["length"]
 
+        reg_json = {
+            "name": "Regulator attribute",
+            "NCBI annotation": reg_ncbi_anno,
+            "Uniprot annotation": reg_uniprot_anno,
+            "Uniprot ID": reg_uniprot_id,
+            "Protein length": reg_length
+        }
+        
+        regulator_con = data_column.container()
+        reg_info, reg_spacer, reg_genbank, reg_spacer2 = regulator_con.columns((8,1,4,1))
+        regulator_df = pd.DataFrame(reg_json, index=[0])
+        regulator_df.set_index("name", inplace=True)
+        regulator_df = regulator_df.T
+        reg_info.subheader("Regulator information")
+        reg_info.table(regulator_df)
 
-        # Regulator sequence
+        reg_genbank.form_submit_button(label="Download Plasmid", type="primary")
+        reg_genbank.markdown(f'<p style="font-size: 16px">This plasmid is designed to induce GFP expression in the presence of the target molecule using the '+str(refseq)+' regulator</>', unsafe_allow_html=True)
+
+        
+        # download_button(
+        #     label="Download Plasmid",
+        #     data="genbank/pLigifyVprR.gb",
+        #     file_name="pLigify"+str(st.session_state.data["refseq"])+".gb",
+        #     mime="chemical/seq-na-genbank",
+        # )
+
 
 
         # Enzyme info
@@ -33,14 +62,16 @@ def format_display(data_column):
         enz_refseq = st.session_state.data['protein']['enzyme']['ncbi_id']
         equation = st.session_state.data['equation'] 
         rhea_id = st.session_state.data['rhea_id'] 
+        alt_ligands = st.session_state.data['alt_ligands'][0] 
         references = st.session_state.data['protein']['enzyme']['dois']
 
-        enz_json = {"name": "enzyme attribute",
+        enz_json = {"name": "Enzyme attribute",
                     "annotation": enz_annotation,
                     "equation": equation,
                     "uniprot": enz_uniprot,
                     "refseq": enz_refseq,
-                    "rhea_id": rhea_id}
+                    "rhea_id": rhea_id,
+                    "alt_ligands": alt_ligands}
 
         enzyme_and_org = data_column.container()
         enz, org = enzyme_and_org.columns([1,1])
@@ -66,7 +97,7 @@ def format_display(data_column):
         org_df = pd.DataFrame(org_json, index=[0])
         org_df.set_index("name", inplace=True)
         org_df = org_df.T
-        org.subheader("Host organsim")
+        org.subheader("Host organism")
         org.table(org_df)
 
 
@@ -80,8 +111,18 @@ def format_display(data_column):
         operon = data_column.container()
         operon.subheader("Operon")
         genes = []
-        
-        for i in st.session_state.data['protein']['context']['operon']:
+
+        # Get the regulator position within the operon
+        operon_json = st.session_state.data['protein']['context']['operon']
+        reg_index = 0
+        for i in operon_json:
+            if i["accession"] == refseq:
+                break
+            else:
+                reg_index += 1
+
+
+        for i in operon_json:
             try:
                 gene = {
                     "alias": i['alias'],
@@ -104,6 +145,14 @@ def format_display(data_column):
                 genes.append(gene)
 
         operon_df = pd.DataFrame(genes)
+        # Highlight the regulator green
+        def bg_color_col(col):
+            return ['background-color: %s' % "#b3ffb0"
+                        if i==reg_index
+                        else ''
+                    for i,x in col.items()]
+        operon_df = operon_df.style.apply(bg_color_col)
+
         operon.table(operon_df)
 
 
