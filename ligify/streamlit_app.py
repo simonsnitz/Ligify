@@ -4,7 +4,7 @@ import sys
 
 from ligify import __version__ as ligify_version
 
-from ligify.regulator_info import format_display
+from ligify.format_results import format_results
 from ligify.fetch_data import fetch_data
 from ligify.predict.database.chemical_db import blast_chemical
 from ligify.predict.pubchem import get_smiles, get_inchikey, get_name
@@ -233,7 +233,7 @@ def run_ligify(chem, results, progress, chemical, filters):
             # if not st.session_state.data:      
 
 
-            format_display(data_column)
+            format_results(data_column)
 
             regulator_column.header('')
             regulator_column.subheader('Sensor candidates')

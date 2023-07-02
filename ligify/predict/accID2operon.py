@@ -47,19 +47,110 @@ def acc2MetaData(access_id: str):
 
 
 
+    # OLD VERSION
 
-def NC2genome(genome_id, startPos, stopPos):
+# def NC2genome(genome_id, startPos, stopPos):
+
+#     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore"
+#     response = requests.get(base_url+"&id="+str(genome_id)+"&seq_start="+str(startPos)+"&seq_stop="+str(stopPos)+"&rettype=fasta_cds_aa")
+#     # old script that fetches the entire genome
+#     # response = requests.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id='+str(genome_id)+'&rettype=fasta_cds_aa')
+
+#     if response.ok:
+#         genome = response.text.split("\n")
+#         return genome
+
+
+
+def NC2genome(genome_id, operon):
 
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore"
-    response = requests.get(base_url+"&id="+str(genome_id)+"&seq_start="+str(startPos)+"&seq_stop="+str(stopPos)+"&rettype=fasta_cds_aa")
-    # old script that fetches the entire genome
-    # response = requests.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id='+str(genome_id)+'&rettype=fasta_cds_aa')
+    startPos = operon[0]["start"]
+    stopPos = operon[-1]["stop"]
+    response = requests.get(base_url+"&id="+str(genome_id)+"&seq_start="+str(startPos)+"&seq_stop="+str(stopPos)+"&rettype=fasta")
+
 
     if response.ok:
         genome = response.text.split("\n")
-        return genome
+        genome = "".join(i for i in genome[0:-2] if i[0] != ">")
 
 
+        ### GENOME FRAGMENT ANNOTATION FUNCTION ###
+
+            ### This deals with one-sided gene overlaps (beginning or end)
+
+            ### It does NOT YET deal with double-sided overlaps (begining AND end)
+
+
+        out = {}
+        counter = 0
+        for index in range(0, len(operon)):
+
+            # reset overlap seq
+            overlap_seq = ""
+
+            # if you're not at the end...
+            if index != len(operon)-1:
+                # if END of gene overlaps with START of next gene...
+                if operon[index+1]["start"] < operon[index]["stop"]:
+                    # truncated gene
+                    gene_seq = genome[operon[index]["start"]-startPos : operon[index+1]["start"]-startPos]
+                    # overlap region
+                    overlap_seq = genome[operon[index+1]["start"]-startPos : operon[index]["stop"]-startPos+1]
+
+                # if you're not at the beginning...
+                elif index != 0:
+                    # if START of gene overlaps with END of prior gene...
+                    if operon[index-1]["stop"] > operon[index]["start"]:
+                        # truncated gene
+                        gene_seq = genome[operon[index-1]['stop']-startPos+1 : operon[index]['stop']-startPos+1]    
+                    else:
+                        # full gene
+                        gene_seq = genome[operon[index]["start"]-startPos : operon[index]["stop"]-startPos+1]
+
+                # if you're at the beginning
+                elif index == 0:     
+                    # full gene
+                    gene_seq = genome[operon[index]["start"]-startPos : operon[index]["stop"]-startPos+1]  
+
+            # if you ARE at the end...
+            elif index == len(operon)-1:
+                # see if START of gene overlaps with END of prior gene
+                if operon[index-1]["stop"] > operon[index]["start"]:
+                    # truncated gene
+                    gene_seq = genome[operon[index-1]['stop']-startPos+1 : operon[index]['stop']-startPos+1]    
+                else:
+                    # full gene
+                    gene_seq = genome[operon[index]["start"]-startPos : ]                
+
+            # Append the gene sequence
+            if str(operon[index]["direction"]) == "+":
+                out["gene"+str(counter)+"fwd"] = gene_seq 
+            else:
+                out["gene"+str(counter)] = gene_seq 
+
+            # Append the overlap sequence
+            if len(overlap_seq) > 0:
+                out["overlap"+str(counter)] = overlap_seq 
+
+            # Append the spacer
+            try:
+                spacer_seq = genome[operon[index]["stop"]-startPos+1 : operon[index+1]["start"]-startPos]
+            except:
+                spacer_seq = genome[operon[index]["stop"]-startPos+1 : len(genome)]
+            if len(spacer_seq) != 0:
+                out["spacer"+str(counter)] = spacer_seq
+            
+            counter += 1
+        
+        reconstruct = "".join(i for i in out.values())
+        if reconstruct == genome:
+            genome_reassembly_match = True
+        else:
+            genome_reassembly_match = False
+
+
+        return out, genome_reassembly_match
 
 
 
@@ -223,32 +314,117 @@ def getOperon(allGenes, index, seq_start, strand):
 
 
 
+def predict_promoter(operon, regIndex, genome_id):
+
+
+    if operon[regIndex]["direction"] == "+":
+        queryGenes = list(reversed(operon[0:regIndex]))
+        index = regIndex
+        if len(queryGenes) == 0:
+            # print("WARNING: Tiny operon with too few genes. This entry will be omitted.")
+            return
+        for i in queryGenes:
+            if i["direction"] == "-":
+                startPos = i["stop"]
+                stopPos = operon[index]["start"]
+                regType = 1
+                break
+            else:
+                start = operon[regIndex-1]["stop"]
+                stop = operon[regIndex]["start"]
+                testLength = int(stop) - int(start)
+                    # Setting this to 100bp is somewhat arbitrary. 
+                    # Most intergenic regions >= 100bp. May need to tweak.
+                if testLength > 100:
+                    startPos = start
+                    stopPos = stop
+                    regType = 2
+                    break
+                else:
+                    if index == 1:
+                        # print('WARNING: Reached end of operon. This entry will be omitted')
+                        return None
+                    index -= 1
+
+    elif operon[regIndex]["direction"] == "-":
+        queryGenes = operon[regIndex+1:]
+        index = regIndex
+        if len(queryGenes) == 0:
+            # print("WARNING: Tiny operon with too few genes. This entry will be omitted.")
+            return
+        for i in queryGenes:
+            if i["direction"] == "+":
+                stopPos = i["start"]
+                startPos = operon[index]["stop"]
+                regType = 1
+                break
+            else:
+                    # Counterintunitive use of "stop"/"start" ...
+                    # Start < stop always true, regardless of direction
+                start = operon[regIndex]["stop"]
+                stop = operon[regIndex+1]["start"]
+                testLength = int(stop) - int(start)
+                if testLength > 100:
+                    startPos = start
+                    stopPos = stop
+                    regType = 2
+                    break
+                else:
+                    if index == len(operon)-2:
+                        # print('WARNING: Reached end of operon. This entry will be omitted')
+                        return None
+                    else:
+                        index += 1
+  
+    URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id="+str(genome_id)+"&seq_start="+str(startPos)+"&seq_stop="+str(stopPos)+"&strand=1&rettype=fasta"
+    response = requests.get(URL)
+
+    if response.ok:
+        intergenic = response.text
+        output  = ""
+        for i in intergenic.split('\n')[1:]:
+            output += i
+        if len(output) <= 800:
+            return {"regulated_seq": output, "reg_type": regType}
+        else:
+            # print('WARNING: Intergenic region is over 800bp')
+            return None
+    else:
+        print('FATAL: Bad eFetch request')
+        return None
+
+         # 800bp cutoff for an inter-operon region. 
+         # A region too long makes analysis fuzzy and less accurate.
+
+
+
 
 
 def acc2operon(accession):
 
-    acc2MetaData_start = time.time()
     metaData = acc2MetaData(accession)
-    acc2MetaData_end = time.time()
 
     if metaData != "EMPTY":
         genes, index = getGenes(metaData["accver"], int(metaData["start"]), int(metaData["stop"]))
-        getGenes_end = time.time()
 
         if index != None:
             reg = fasta2MetaData(genes[index])
-            fasta2MetaData_end = time.time()
 
             operon, regIndex = getOperon(genes, index, reg['start'], reg['direction'])
-            getOperon_end = time.time()
+            operon_sequence, reassembly_match = NC2genome(metaData["accver"], operon)
+            promoter = predict_promoter(operon, regIndex, metaData["accver"])
 
-            data = {"operon": operon, "enzyme_index": regIndex, "genome": metaData["accver"] }
-
-            # For recording process speeds
-            # print("acc2MetaData time: "+str(acc2MetaData_end - acc2MetaData_start))
-            # print("getGenes time: "+str(getGenes_end - acc2MetaData_start))
-            # print("fasta2MetaData time: "+str(fasta2MetaData_end - getGenes_end))
-            # print("getOperon time: "+str(getOperon_end - fasta2MetaData_end))
+            data = {
+                "operon": operon, 
+                "protein_index": regIndex, 
+                "operon_seq": operon_sequence, 
+                "promoter": promoter,  
+                "reassembly_match": reassembly_match,
+                "genome": metaData["accver"],
+                }
+            
+                # OLD
+            #data = {"operon": operon, "enzyme_index": regIndex, "genome": metaData["accver"] }
             
             return data
         else:

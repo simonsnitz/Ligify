@@ -1,9 +1,9 @@
 import streamlit as st
 import sys 
 import pandas as pd
+import re
 
-
-def format_display(data_column):
+def format_results(data_column):
 
     if st.session_state.data:
 
@@ -73,7 +73,6 @@ def format_display(data_column):
                     "Annotation": enz_annotation,
                     "Reaction": equation,
                     "RHEA ID": rhea_id,
-                    "Uniprot ID": enz_uniprot,
                     "RefSeq ID": enz_refseq,
                     }
 
@@ -103,100 +102,78 @@ def format_display(data_column):
 
 
 
+
+        # TODO:
+        # Add a description for the rank given.
+
+
+
+
         # Operon
-        operon = data_column.container()
-        operon.subheader("Operon")
-        genes = []
-
-        # Get the regulator position within the operon
-        operon_json = st.session_state.data['protein']['context']['operon']
-        reg_index = 0
-        for i in operon_json:
-            if i["accession"] == refseq:
-                break
-            else:
-                reg_index += 1
-        # Get the enzyme position within the operon
-        enz_index = 0
-        for i in operon_json:
-            if i["accession"] == enz_refseq:
-                break
-            else:
-                enz_index += 1
-
-
-        for i in operon_json:
-            try:
-                gene = {
-                    "alias": i['alias'],
-                    "description": i['description'],
-                    "refseq": i['accession'],
-                    "direction": i['direction'],
-                    "start_position": i['start'],
-                    "end_position": i['stop']
-                }
-                genes.append(gene)
-            except:
-                # Sometimes the alias isn't returned
-                gene = {
-                    "description": i['description'],
-                    "refseq": i['accession'],
-                    "direction": i['direction'],
-                    "start_position": i['start'],
-                    "end_position": i['stop']
-                }
-                genes.append(gene)
-
-        operon_df = pd.DataFrame(genes)
-        # Highlight the regulator green
-        def bg_color_col(col):
-            return ['background-color: %s' % "#b3ffb0"
-                        if i==reg_index
-                        else 'background-color: %s' % "#e6cffc"
-                        if i ==enz_index
-                        else ''
-                    for i,x in col.items()]
-        operon_df = operon_df.style.apply(bg_color_col)
-
-        operon.table(operon_df)
-
-
-        # Operon sequence
         operon_seq = data_column.container()
-        operon_seq.subheader("Operon sequence")
-        with operon_seq.expander(label="full operon seqeunce"):
-
-            st.write("Operon seq goes here")
-            st.subheader("Predicted promoter")
-        # Add a dropdown for the full operon sequence (from Toolkit)
-            # Also add a section indicating the predicted promoter
-
+        operon_seq.subheader("Operon")
+        operon_data = st.session_state.data['protein']['context']
+        operon_json = operon_data['operon']
         
+        with operon_seq.expander(label="Click here to see the genetic context for "+str(refseq)):
 
 
-        # Spacer
-        # data_column.text("")
-        # data_column.text("")
+            # Get the regulator position within the operon
+            reg_index = 0
+            for i in operon_json:
+                if i["accession"] == refseq:
+                    break
+                else:
+                    reg_index += 1
+            # Get the enzyme position within the operon
+            enz_index = st.session_state.data['protein']['context']['protein_index']
+
+            # Create the operon table
+            genes = []
+            for i in operon_json:
+                gene = {
+                    "RefSeq ID": i['accession'],
+                    "Description": i['description'],
+                    "Direction": i['direction'],
+                    "Start position": i['start'],
+                    "End position": i['stop']
+                }
+                genes.append(gene)
+            operon_df = pd.DataFrame(genes)
+
+            # Color the operon table
+            colors = ["#fcb1b1", "#e6cffc", "#9afcac", "#fcc99d", "#a3fff6", "#fdff9c", "#ccd4fc", "#fcbdf6"]
+            def bg_color_col(col):
+                color = [colors[i % len(colors)] for i,x in col.items()]
+                return ['background-color: %s' % color[i]
+                            if col.name=='RefSeq ID' or (col.name=="Description" and i==reg_index) or (col.name=="Description" and i==enz_index)
+                            else ''
+                        for i,x in col.items()]
+
+            operon_df = operon_df.style.apply(bg_color_col)
+            st.table(operon_df)
 
 
-        # This takes too long to load. It's a 'nice to have' that's not worth the lag it creates.
+            # Display the predicted promoter
+            st.markdown("<h5>Predicted promoter</h5>", unsafe_allow_html=True)
+            st.write(operon_data["promoter"]['regulated_seq'])
 
-        # Alternative ligands
-            # This takes a while to load if there are a lot of ligands
-        # alt_ligands = data_column.container()
-        # alt_ligands.subheader("Possible alternative ligands")
-        # a_ligands_smiles = []
-        # a_ligands_names = []
-        
-        # for i in st.session_state.data['alt_ligands']:
-        #     try:
-        #         SMILES = get_smiles(str(i))
-        #         url = f'http://hulab.rxnfinder.org/smi2img/{SMILES}/'
-        #         if check_url(url):
-        #             a_ligands_smiles.append(url)
-        #             a_ligands_names.append(str(i))
-        #     except:
-        #         pass
+            # Create and display the color-annotated genome fragment
+            operon_seq = ""
 
-
-        # alt_ligands.image(a_ligands_smiles, width=200, caption= a_ligands_names)
+            c = 0
+            for seq in operon_data["operon_seq"]:
+                sequence = operon_data["operon_seq"][seq]
+                if re.compile(r"spacer").search(seq):
+                    html = "<span style='color: grey;'>"+str(sequence)+"</span>"
+                elif re.compile(r"overlap").search(seq):
+                    html = "<span style='color: red;'>"+str(sequence)+"</span>"
+                elif re.compile(r"fwd").search(seq):
+                    html = f"<b><span style='background: {colors[c % len(colors)]};'>"+str(sequence)+"</span></b>"
+                    c += 1
+                else:
+                    html = f"<span style='background: {colors[c % len(colors)]};'>"+str(sequence)+"</span>"
+                    c += 1
+                operon_seq += html
+            st.markdown("<h5>Full operon sequence</h5>", unsafe_allow_html=True)
+            st.markdown(operon_seq, unsafe_allow_html=True)
