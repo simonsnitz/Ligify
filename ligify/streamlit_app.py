@@ -229,9 +229,7 @@ def run_ligify(chem, results, progress, chemical, filters):
 
             regulators, metrics = fetch_data(chemical["InChiKey"], filters)
 
-            select_spacerL, please_select, select_spacerR  = data_column.container().columns([1,2,1])
-            # if not st.session_state.data:      
-
+            select_spacerL, please_select, select_spacerR  = data_column.container().columns([1,2,1])     
 
             format_results(data_column, chemical["name"])
 
@@ -263,14 +261,16 @@ def run_ligify(chem, results, progress, chemical, filters):
                 if not st.session_state.data:
                     please_select.subheader("Please select a regulator") 
 
-                reg_acc, rank = regulator_column.columns((2,1))
-                reg_acc.markdown("<h5>Regulator</h5>", unsafe_allow_html=True)
-                rank.markdown("<h5>Rank</h5>", unsafe_allow_html=True)
+                reg_acc_col, rank_col = regulator_column.columns((2,1))
+                reg_acc_col.markdown("<h5>Regulator</h5>", unsafe_allow_html=True)
+                rank_col.markdown("<h5>Rank</h5>", unsafe_allow_html=True)
 
                 for i in range(0, len(regulators)):
                     name = "var"+str(i)
-                    rank.markdown("<p style='font-size:20px; color: orange;'>43</p>", unsafe_allow_html=True)
-                    name = reg_acc.form_submit_button(regulators[i]['refseq'])
+                    rank = regulators[i]["rank"]["rank"]
+                    color = regulators[i]["rank"]["color"]
+                    rank_col.markdown(f"<p style='font-size:20px; font-weight: 600; color: {color};'>{rank}</p>", unsafe_allow_html=True)
+                    name = reg_acc_col.form_submit_button(regulators[i]['refseq'])
                     if name:
                         st.session_state.data = regulators[i]
                         st.experimental_rerun()

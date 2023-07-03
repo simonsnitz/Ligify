@@ -147,7 +147,8 @@ def pull_regulators(protein, rxn):
                                 if "catalysis" in protein_data.keys():
                                     ligand_names += protein_data["catalysis"].split(" ")
                         unique_ligands = list(set(ligand_names))
-                        not_ligands = ["H2O", "+", "-", "=", "A", "AH2", "H(+)", "NADPH", "NADH", "NADP(+)", "NAD(+)"]
+                         # Blacklisted ligands
+                        not_ligands = ["H2O", "+", "-", "=", "A", "AH2", "H(+)", "NADPH", "NADH", "NADP(+)", "NAD(+)", "2", "H(+)in", "H(+)out"]
                         unique_ligands = [ i for i in unique_ligands if i not in not_ligands]
 
                         entry['alt_ligands'] = unique_ligands

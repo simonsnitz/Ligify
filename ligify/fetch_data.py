@@ -1,10 +1,10 @@
 import streamlit as st
-
+import json
 
 from ligify.predict.chemical2enzymes import fetch_reactions, fetch_genes, filter_genes
 from ligify.predict.enzymes2operons import pull_regulators
 from ligify.predict.accID2operon import acc2operon
-
+from ligify.predict.rank import calculate_rank
 
 
 @st.cache_data
@@ -109,6 +109,7 @@ def fetch_data(InChiKey, filters):
                 metrics["Total regulators"] = len(regulators)
                 prog_bar.empty()
 
+
                 # Filter out duplicate regulators
                 refseq_ids = []
                 filtered_regulators = []
@@ -116,6 +117,12 @@ def fetch_data(InChiKey, filters):
                     if i["refseq"] not in refseq_ids:
                         filtered_regulators.append(i)
                         refseq_ids.append(i["refseq"])
+
+
+                # Create a rank for each regulator
+                for r in filtered_regulators:
+                    rank = calculate_rank(r)
+                    r["rank"] = rank
 
 
                 if filtered_regulators == None or len(filtered_regulators) == 0:
