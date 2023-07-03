@@ -10,7 +10,6 @@ from ligify.predict.accID2operon import acc2operon
 @st.cache_data
 def fetch_data(InChiKey, filters):
 
-
     prog_container = st.container()
     prog_spacerL, prog, prog_spacerR = prog_container.columns((1,1,1))
     st.spinner("Processing")

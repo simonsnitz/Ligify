@@ -1,9 +1,62 @@
 import streamlit as st
-import sys 
 import pandas as pd
 import re
+import base64
+import streamlit.components.v1 as components
+from Bio.Seq import Seq
+from ligify.genbank.create_genbank import create_genbank
 
-def format_results(data_column):
+
+def download_button(object_to_download, download_filename):
+    # Generates a link to download the given object_to_download.
+    try:
+        # some strings <-> bytes conversions necessary here
+        b64 = base64.b64encode(object_to_download.encode()).decode()
+
+    except AttributeError as e:
+        b64 = base64.b64encode(object_to_download).decode()
+
+    dl_link = f"""
+    <html>
+    <head>
+    <title>Start Auto Download file</title>
+    <script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script>
+    $('<a href="data:text/csv;base64,{b64}" download="{download_filename}">')[0].click()
+    </script>
+    </head>
+    </html>
+    """
+    return dl_link
+
+
+def download_df(ligand_name):
+
+    # Figure out which direction the promoter should be facing
+    enzyme_direction = st.session_state.data['protein']['context']['enzyme_direction']
+    if enzyme_direction == "-":
+        promoter_seq = st.session_state.data['protein']['context']["promoter"]["regulated_seq"]
+    elif enzyme_direction == "+":
+        promoter_seq = st.session_state.data['protein']['context']["promoter"]["regulated_seq"]
+        promoter_seq = Seq(promoter_seq).reverse_complement()
+
+
+    regulator_name = st.session_state.data['refseq']
+    regulator_protein_seq = st.session_state.data["reg_protein_seq"]
+
+
+    
+
+    data = create_genbank(regulator_name, ligand_name, promoter_seq, regulator_protein_seq)
+    components.html(
+        download_button(data, "pLigify_"+str(regulator_name)+".gb"),
+        height=0,
+    )
+
+
+
+
+def format_results(data_column, ligand_name):
 
     if st.session_state.data:
 
@@ -23,8 +76,8 @@ def format_results(data_column):
 
         # Regulator info
         reg_ncbi_anno = st.session_state.data["annotation"]
+        reg_protein_seq = st.session_state.data["reg_protein_seq"]
         reg_uniprot_id = st.session_state.data["uniprot_reg_data"]["id"]
-        reg_length = st.session_state.data["uniprot_reg_data"]["length"]
         organism = st.session_state.data["protein"]["organism"]
         organism_name = str(organism[-2])+", "+str(organism[-1])
 
@@ -32,13 +85,13 @@ def format_results(data_column):
             "name": "Regulator attribute",
             "NCBI annotation": reg_ncbi_anno,
             "Uniprot ID": reg_uniprot_id,
-            "Protein length": reg_length,
+            "Protein length": len(reg_protein_seq),
             "Organism": organism_name,
         }
         
         regulator_con = data_column.container()
-        reg_info, reg_spacer, reg_genbank, reg_spacer2 = regulator_con.columns((8,1,4,1))
-        regulator_df = pd.DataFrame(reg_json, index=[0])
+        reg_info, reg_spacer, reg_genbank = regulator_con.columns((8,1,5))
+        regulator_df = pd.DataFrame(reg_json, index=["name"]).astype(str)
         regulator_df.set_index("name", inplace=True)
         regulator_df = regulator_df.T
         reg_info.subheader("Regulator information")
@@ -46,24 +99,15 @@ def format_results(data_column):
 
         reg_genbank.header("")
         reg_genbank.header("")
-        reg_genbank.form_submit_button(label="Download Plasmid", type="primary")
+        reg_genbank.form_submit_button(label="Download Plasmid", type="primary", on_click=download_df, args=(ligand_name,))
         reg_genbank.markdown(f'<p style="font-size: 16px">This plasmid is designed to induce GFP expression in the presence of the target molecule via '+str(refseq)+', within E. coli</>', unsafe_allow_html=True)
 
-        # TODO:
-            # MAKE A FUNCTIONAL DOWNLOAD BUTTON
-
-        # download_button(
-        #     label="Download Plasmid",
-        #     data="genbank/pLigifyVprR.gb",
-        #     file_name="pLigify"+str(st.session_state.data["refseq"])+".gb",
-        #     mime="chemical/seq-na-genbank",
-        # )
 
 
 
         # Enzyme info
         enz_annotation = st.session_state.data['protein']['enzyme']['description']
-        enz_uniprot = st.session_state.data['protein']['enzyme']['uniprot_id']
+        #enz_uniprot = st.session_state.data['protein']['enzyme']['uniprot_id']
         enz_refseq = st.session_state.data['protein']['enzyme']['ncbi_id']
         equation = st.session_state.data['equation'] 
         rhea_id = st.session_state.data['rhea_id'] 
@@ -125,8 +169,10 @@ def format_results(data_column):
                     break
                 else:
                     reg_index += 1
+
             # Get the enzyme position within the operon
-            enz_index = st.session_state.data['protein']['context']['protein_index']
+            enz_index = st.session_state.data['protein']['context']['enzyme_index']
+
 
             # Create the operon table
             genes = []

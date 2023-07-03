@@ -65,8 +65,18 @@ def protein2chemicals(accession: str):
         response.raise_for_status()
 
 
+def fetch_reg_protein_seq(accession: str):
+    URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi/?db=protein&id="+accession+"&rettype=fasta"
+    response = requests.get(URL)
+    if response.ok:
+        seq = "".join(i for i in response.text.split("\n")[1:])
+        return seq
+    else:
+        print("Bad eFetch request "+ str(response.status_code))
+        return None
+
     
-def fetch_reg_data(accession: str):
+def fetch_uniprot_reg_data(accession: str):
     url = "https://rest.uniprot.org/uniprotkb/search?query="+accession+"&format=json"
     response = requests.get(url)
 
@@ -124,7 +134,11 @@ def pull_regulators(protein, rxn):
                                     }
 
                         ### This is where a Uniprot API query goes to fetch more info on the regulator.
-                        entry["uniprot_reg_data"] = fetch_reg_data(gene["accession"])
+                        entry["uniprot_reg_data"] = fetch_uniprot_reg_data(gene["accession"])
+
+                        ### NCBI is queried for more info on the regulator.
+                            # This is a fail-safe, since sometimes no Uniprot ID is associated with the RefSeq identifier
+                        entry["reg_protein_seq"] = fetch_reg_protein_seq(gene["accession"])
 
                         # Fetch possible alternative inducer molecules associated with the operon
                         for gene in operon:
@@ -138,6 +152,8 @@ def pull_regulators(protein, rxn):
 
                         entry['alt_ligands'] = unique_ligands
 
+
+
                         reg_data.append(entry)
 
                 
@@ -149,7 +165,7 @@ def pull_regulators(protein, rxn):
 
 if __name__ == "__main__":
 
-    fetch_reg_data("ACP17972.1")
+    fetch_ncbi_reg_data("ACP17972.1")
 
     # with open("temp/all.json", "r") as f:
     #     all_chemicals = json.load(f)

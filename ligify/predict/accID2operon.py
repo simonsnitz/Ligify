@@ -3,6 +3,7 @@ import re
 from pprint import pprint
 import xmltodict
 import time
+import streamlit as st
 
 #TODO:
 # Return a legit error message for the frontend if an error comes up
@@ -384,10 +385,12 @@ def predict_promoter(operon, regIndex, genome_id):
         output  = ""
         for i in intergenic.split('\n')[1:]:
             output += i
-        if len(output) <= 800:
-            return {"regulated_seq": output, "reg_type": regType}
+        if len(output) <= 1000:
+            return {"regulated_seq": output[1:-1], "reg_type": regType}
         else:
+            # TODO: This is a potential failure mode!!!
             # print('WARNING: Intergenic region is over 800bp')
+            st.error("predicted promoter is over 1000 base pairs")
             return None
     else:
         print('FATAL: Bad eFetch request')
@@ -408,15 +411,16 @@ def acc2operon(accession):
         genes, index = getGenes(metaData["accver"], int(metaData["start"]), int(metaData["stop"]))
 
         if index != None:
-            reg = fasta2MetaData(genes[index])
+            enzyme = fasta2MetaData(genes[index])
 
-            operon, regIndex = getOperon(genes, index, reg['start'], reg['direction'])
+            operon, regIndex = getOperon(genes, index, enzyme['start'], enzyme['direction'])
             operon_sequence, reassembly_match = NC2genome(metaData["accver"], operon)
             promoter = predict_promoter(operon, regIndex, metaData["accver"])
 
             data = {
                 "operon": operon, 
-                "protein_index": regIndex, 
+                "enzyme_index": regIndex, 
+                "enzyme_direction": enzyme["direction"],
                 "operon_seq": operon_sequence, 
                 "promoter": promoter,  
                 "reassembly_match": reassembly_match,

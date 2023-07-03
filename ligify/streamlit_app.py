@@ -113,7 +113,7 @@ def run_streamlit():
         chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
 
     elif input_mode == 'Name':
-        chemical_name = head2.text_input(label="Chemical name", value="Acrylate", label_visibility="collapsed")
+        chemical_name = head2.text_input(label="Chemical name", value="Isoeugenol", label_visibility="collapsed")
         smiles = get_smiles(chemical_name)
         InChiKey = get_inchikey(chemical_name, "name")
         chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
@@ -233,7 +233,7 @@ def run_ligify(chem, results, progress, chemical, filters):
             # if not st.session_state.data:      
 
 
-            format_results(data_column)
+            format_results(data_column, chemical["name"])
 
             regulator_column.header('')
             regulator_column.subheader('Sensor candidates')
