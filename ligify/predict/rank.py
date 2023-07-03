@@ -24,7 +24,7 @@ def calculate_rank(r):
 
     # Calculate how many other regulators are in the operon
     regulator_re = re.compile(r"regulator|repressor|activator")
-    total_regs = 0
+    total_regs = -1
     for gene in operon:
         if regulator_re.search(gene["description"]):
             total_regs += 1
@@ -32,11 +32,15 @@ def calculate_rank(r):
     # Calculate final rank score
     rank = 100
         # Subtract 10 points for every gene between the enzyme and the regulator
-    rank = rank - 10*(enz_reg_distance-1)
+    distance_deduction = -10*(enz_reg_distance-1)
+    rank = rank + distance_deduction
+
         # Subtract 15 points for every additional regulator in the operon
-    rank = rank - 15*(total_regs-1)
+    extra_reg_deduction = -15*(total_regs)
+    rank = rank + extra_reg_deduction
         # Subtract 5 points for every additional gene in the operon
-    rank = rank - 5*(total_genes - 2)
+    total_genes_deduction = -5*(total_genes - 2)
+    rank = rank + total_genes_deduction
 
     # Color-code based on rank score
     if rank >= 70:
@@ -49,7 +53,12 @@ def calculate_rank(r):
         color = "#f50b02"  # Red
 
 
-    return {"rank": rank, "total_genes": total_genes, "enz_reg_distance": enz_reg_distance, "total_regs": total_regs, "color": color}
+    return {"rank": rank, "color": color, "metrics": { \
+            "Genes within operon": {"Value":total_genes, "Deduction": total_genes_deduction}, \
+                "Enzyme-regulator distance": {"Value": enz_reg_distance, "Deduction": distance_deduction}, \
+                    "Additional regulators": {"Value": total_regs, "Deduction": extra_reg_deduction}, \
+                        }
+            }
 
 
 

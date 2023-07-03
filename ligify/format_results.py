@@ -120,35 +120,49 @@ def format_results(data_column, ligand_name):
                     "RefSeq ID": enz_refseq,
                     }
 
-        enzyme_and_org = data_column.container()
-        enz, alt_lig = enzyme_and_org.columns([1,1])
+        enzyme_and_lig = data_column.container()
+        enz, alt_lig = enzyme_and_lig.columns([1,1])
         enz_df = pd.DataFrame(enz_json, index=[0])
         enz_df.set_index("name", inplace=True)
         enz_df = enz_df.T
         enz.subheader("Associated enzyme")
         enz.table(enz_df)
 
-        enzyme_and_org.subheader("Enzyme references")
-        for i in references:
-            enzyme_and_org.markdown(f'<a target="__blank">{"https://doi.org/"+i}</a>', unsafe_allow_html=True)
-
-
-
 
         # Alternative ligands
         alt_lig.subheader("Possible alternative ligands")
-        alt_lig.table(st.session_state.data['alt_ligands'])
+        alt_lig_list = st.session_state.data['alt_ligands'] 
+        lig_html = "<ul style='height: 180px; overflow-y: scroll'>"
+        for lig in alt_lig_list:
+            lig_html += "<li>" + lig + "</li>"
+        lig_html += "</ul>"
+        alt_lig.markdown(lig_html, unsafe_allow_html=True)
+            #alt_lig.markdown("- " + lig + "\n")
+        #alt_lig.table(st.session_state.data['alt_ligands'])
             #TODO: Clean this table up
 
-        # Spacer
-        data_column.text("")
-        data_column.text("")
+
+        # Enzyme references
+        ref_and_rank = data_column.container()
+        reference_col, rank_col = ref_and_rank.columns(2)
+        reference_col.subheader("Enzyme references")
+        for i in references:
+            reference_col.markdown(f'<a target="__blank">{"https://doi.org/"+i}</a>', unsafe_allow_html=True)
+        
 
 
+        # Rank metrics
+        rank_col.subheader("Rank description")
+        rank_metrics = st.session_state.data["rank"]["metrics"]
 
+        rank_df = pd.DataFrame(rank_metrics).T
+        #orient='index')
+        # rank_df = pd.DataFrame.from_dict({(i,j): rank_metrics[i][j] 
+        #                    for i in rank_metrics.keys() 
+        #                    for j in rank_metrics[i].keys()},
+        #                orient='index')
+        rank_col.dataframe(rank_df)
 
-        # TODO:
-        # Add a description for the rank given.
 
 
 
