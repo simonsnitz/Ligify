@@ -47,6 +47,7 @@ def fetch_data(InChiKey, filters):
 
         if len(reactions["rxn_data"]) == 0:
             print("No enzymes found")
+            prog_bar.empty()
             return None, None
         else:
             operon_counter = 0
@@ -118,6 +119,8 @@ def fetch_data(InChiKey, filters):
                         filtered_regulators.append(i)
                         refseq_ids.append(i["refseq"])
 
+                # Filter out regulators without a predicted promoter
+                filtered_regulators = [i for i in filtered_regulators if i["protein"]["context"]["promoter"] != None]
 
                 # Create a rank for each regulator
                 for r in filtered_regulators:

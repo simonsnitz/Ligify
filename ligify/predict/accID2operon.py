@@ -3,7 +3,6 @@ import re
 from pprint import pprint
 import xmltodict
 import time
-import streamlit as st
 
 #TODO:
 # Return a legit error message for the frontend if an error comes up
@@ -18,28 +17,31 @@ def acc2MetaData(access_id: str):
 
     parsed = xmltodict.parse(result.text)
 
-    protein = parsed["IPGReportSet"]["IPGReport"]["ProteinList"]["Protein"]
+    if "IPGReport" in parsed["IPGReportSet"].keys():
+        protein = parsed["IPGReportSet"]["IPGReport"]["ProteinList"]["Protein"]
 
-    if isinstance(protein, list):
-        protein = protein[0]
+        if isinstance(protein, list):
+            protein = protein[0]
 
-    if "CDSList" not in protein.keys():
+        if "CDSList" not in protein.keys():
+            return "EMPTY"
+
+        CDS = protein["CDSList"]["CDS"]
+
+            #CDS is a list if there is more than 1 CDS returned, otherwise it's a dictionary
+        if isinstance(CDS, list):
+            CDS = CDS[0]
+
+        proteinDict = {
+            "accver":CDS["@accver"],
+            "start":CDS["@start"],
+            "stop":CDS["@stop"],
+            "strand":CDS["@strand"],
+        }
+
+        return proteinDict
+    else:
         return "EMPTY"
-
-    CDS = protein["CDSList"]["CDS"]
-
-        #CDS is a list if there is more than 1 CDS returned, otherwise it's a dictionary
-    if isinstance(CDS, list):
-        CDS = CDS[0]
-
-    proteinDict = {
-        "accver":CDS["@accver"],
-        "start":CDS["@start"],
-        "stop":CDS["@stop"],
-        "strand":CDS["@strand"],
-    }
-
-    return proteinDict
 
 
 
@@ -390,7 +392,6 @@ def predict_promoter(operon, regIndex, genome_id):
         else:
             # TODO: This is a potential failure mode!!!
             # print('WARNING: Intergenic region is over 800bp')
-            st.error("predicted promoter is over 1000 base pairs")
             return None
     else:
         print('FATAL: Bad eFetch request')

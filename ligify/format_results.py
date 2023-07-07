@@ -218,6 +218,7 @@ def format_results(data_column, ligand_name):
             st.markdown("<h5>Predicted promoter</h5>", unsafe_allow_html=True)
             st.write(operon_data["promoter"]['regulated_seq'])
 
+
             # Create and display the color-annotated genome fragment
             operon_seq = ""
 

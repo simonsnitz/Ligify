@@ -26,8 +26,9 @@ def calculate_rank(r):
     regulator_re = re.compile(r"regulator|repressor|activator")
     total_regs = -1
     for gene in operon:
-        if regulator_re.search(gene["description"]):
-            total_regs += 1
+        if "description" in gene.keys():
+            if regulator_re.search(gene["description"]):
+                total_regs += 1
 
     # Calculate final rank score
     rank = 100
