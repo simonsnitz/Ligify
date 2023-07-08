@@ -61,6 +61,7 @@ def fetch_genes(rhea_id, reviewed_bool, proteins_per_reaction):
                             if k["database"] == "DOI":
                                 dois.append(k["id"])
             except:
+                description = None
                 dois= []
 
             # Get RefSeq ID
