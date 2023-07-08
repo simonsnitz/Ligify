@@ -52,13 +52,16 @@ def fetch_genes(rhea_id, reviewed_bool, proteins_per_reaction):
         if entry["organism"]["lineage"][0] == "Bacteria":
 
             # Get reference DOIs
-            description = entry["proteinDescription"]["recommendedName"]["fullName"]["value"]
-            dois = []
-            for j in entry['references']:
-                if "citationCrossReferences" in j["citation"]:
-                    for k in j["citation"]["citationCrossReferences"]:
-                        if k["database"] == "DOI":
-                            dois.append(k["id"])
+            try:
+                description = entry["proteinDescription"]["recommendedName"]["fullName"]["value"]
+                dois = []
+                for j in entry['references']:
+                    if "citationCrossReferences" in j["citation"]:
+                        for k in j["citation"]["citationCrossReferences"]:
+                            if k["database"] == "DOI":
+                                dois.append(k["id"])
+            except:
+                dois= []
 
             # Get RefSeq ID
             # The "NCBI_ID" is needed to get the genome context in the next step. Prefer to use RefSeq, but can use EMBL.
@@ -107,28 +110,31 @@ def filter_genes(output, lineage_filter_name):
     #     # have to map name to number because names are more human readable, but numbers are how
     #         # lineages are retrieved programmatically via the Uniprot API.
     map_lineage2number = {"Domain": 0, "Phylum": 1, "Class": 2, "Order": 3, "Family": 4, "Genus": 5}
-    lineage_filter = map_lineage2number[lineage_filter_name]
 
+    if lineage_filter_name != "None":
 
-    # filter out highly similar proteins
-    filtered_rxns = []
-    for rxn in rxns:
-        filtered_proteins = []
-        families = []
-        for protein in rxn["proteins"]:
-                # Sometimes the family name isn't provided in the lineage returned.
-            try:
-                family = protein["organism"][lineage_filter]
-            except:
-                family = ""
-            if family not in families:
-                families.append(family)
-                filtered_proteins.append(protein)
-        new_rxn = rxn
-        new_rxn["proteins"] = filtered_proteins
-        filtered_rxns.append(new_rxn)
+        # filter out highly similar proteins
+        lineage_filter = map_lineage2number[lineage_filter_name]
+        filtered_rxns = []
+        for rxn in rxns:
+            filtered_proteins = []
+            families = []
+            for protein in rxn["proteins"]:
+                    # Sometimes the family name isn't provided in the lineage returned.
+                try:
+                    family = protein["organism"][lineage_filter]
+                except:
+                    family = ""
+                if family not in families:
+                    families.append(family)
+                    filtered_proteins.append(protein)
+            new_rxn = rxn
+            new_rxn["proteins"] = filtered_proteins
+            filtered_rxns.append(new_rxn)
 
-    output["rxn_data"] = filtered_rxns
+        output["rxn_data"] = filtered_rxns
+    else:
+        output["rxn_data"] = rxns
 
         # count number of filtered proteins
     # filtered_proteins = len([protein for rxn in filtered_rxns for protein in rxn["proteins"]])
