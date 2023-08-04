@@ -9,6 +9,7 @@ from enzymes2operons import pull_regulators
 from accID2operon import acc2operon
 from rank import calculate_rank
 from pubchem import get_inchikey
+from compare import blast_align
 
 
 def fetch_reg_protein_seq(accession: str):
@@ -24,15 +25,15 @@ def fetch_reg_protein_seq(accession: str):
 
 
 
-def benchmark():
+def benchmark(file_name, rigerous=False):
 
-    with open("Ligify_benchmarking_dataset.xlsx", "rb+") as f:
+    with open(file_name, "rb+") as f:
 
         df = pd.read_excel(f)
 
         refseqs = df.loc[:,"refseq"].values
 
-        # if protein sequence doesn't exist, get it.
+        # Get protein sequences, if they don't already exist.
         for i in range(0, len(refseqs)):
             
             if pd.isna(df.loc[i,"protein_seq"]):
@@ -40,27 +41,117 @@ def benchmark():
                 df.loc[i, "protein_seq"] = protein_seq
                 print("fetched protein seq for "+str(df.loc[i, "refseq"]))
 
-        df.to_excel("Ligify_benchmarking_dataset.xlsx")
+        df.to_excel(file_name)
 
-        # Collect ligify predictions for each ligand
+        # Collect ligify predictions for each ligand, if they don't alredy exist.
         smiles = df.loc[:,"smiles"].values
         for i in range(0, len(smiles)):
 
             if pd.isna(df.loc[i, "ligify_predictions"]):
-                prediction = fetch_data(df.loc[i, "smiles"])
+                prediction = fetch_data(df.loc[i, "smiles"], rigerous)
                 prediction = json.dumps(prediction)
-                print(prediction)
+                #print(prediction)
                 df.loc[i, "ligify_predictions"] = prediction
-                df.to_excel("Ligify_benchmarking_dataset.xlsx")
+                df.to_excel(file_name)
+
+
+                if pd.isna(df.loc[i, "match"]):
+                                true_reg_seq = df.loc[i, "protein_seq"]
+                                data = prediction
+                                #data = df.loc[i, "ligify_predictions"]
+
+                                reg_list = json.loads(data)["reg_list"]
+                                alignments = []
+                                if reg_list != None:
+                                    for reg in reg_list:
+                                        predicted_reg_seq = reg["protein_seq"]
+                                        if len(predicted_reg_seq) > 0:
+                                            align = blast_align(predicted_reg_seq, true_reg_seq)
+                                            align["refseq"] = reg["refseq"]
+                                            align["rank"] = reg["rank"]["rank"]
+                                            alignments.append(align)
+                                    # pull out the best match
+                                    min_e_score = min([i["e value"] for i in alignments])
+                                    top_prediction = [i for i in alignments if i["e value"] == min_e_score][0]
+                                    df.loc[i, "align_details"] = json.dumps(top_prediction)
+                                    # assign pass/fail
+                                    if top_prediction["identity"] >80 and top_prediction["coverage"] >90:
+                                        df.loc[i, "match"] = True
+                                        print("Matches!")
+                                    else:
+                                        df.loc[i, "match"] = False
+                                        print("Does not match :(")
+                                    print("appended comparison for "+str(refseqs[i]))
+
+
+                df.to_excel(file_name)
                 print("appended a prediction for "+str(smiles[i]))
 
+        # Find the best true regulator-prediction match.
+        # for i in range(0, len(refseqs)):
+
+        #     if pd.isna(df.loc[i, "match"]):
+        #         true_reg_seq = df.loc[i, "protein_seq"]
+        #         data = df.loc[i, "ligify_predictions"]
+
+        #         reg_list = json.loads(data)["reg_list"]
+        #         alignments = []
+        #         if reg_list != None:
+        #             for reg in reg_list:
+        #                 predicted_reg_seq = reg["protein_seq"]
+        #                 if len(predicted_reg_seq) > 0:
+        #                     align = blast_align(predicted_reg_seq, true_reg_seq)
+        #                     align["refseq"] = reg["refseq"]
+        #                     align["rank"] = reg["rank"]["rank"]
+        #                     alignments.append(align)
+        #             # pull out the best match
+        #             min_e_score = min([i["e value"] for i in alignments])
+        #             top_prediction = [i for i in alignments if i["e value"] == min_e_score][0]
+        #             df.loc[i, "align_details"] = json.dumps(top_prediction)
+        #             # assign pass/fail
+        #             if top_prediction["identity"] >80 and top_prediction["coverage"] >90:
+        #                 df.loc[i, "match"] = True
+        #             else:
+        #                 df.loc[i, "match"] = False
+        #             print("appended comparison for "+str(refseqs[i]))
+
+        #             df.to_excel(file_name)
+
+
+                
 
 
 
 
-def fetch_data(smiles):
+def fetch_data(smiles, rigerous):
 
     InChiKey = get_inchikey(smiles, "smiles")
+
+    if rigerous == 1:
+        max_react = 100
+        max_genes = 100
+        reviewed = False
+        lineage_filter = "None"
+        max_operons = 100
+    elif rigerous == 2:
+        max_react = 100
+        max_genes = 500
+        reviewed = True
+        lineage_filter = "Family"
+        max_operons = 500
+    elif rigerous == 3:
+        max_react = 100
+        max_genes = 500
+        reviewed = True
+        lineage_filter = "None"
+        max_operons = 1000
+
+    else:
+        max_react = 100
+        max_genes = 500
+        reviewed = True
+        lineage_filter = "Family"
+        max_operons = 100
 
     metrics = {}
 
@@ -68,9 +159,11 @@ def fetch_data(smiles):
 
     print("fetching reactions for "+str(smiles))
 
-    reactions = fetch_reactions(InChiKey = InChiKey, max_reactions = 20)
+    reactions = fetch_reactions(InChiKey = InChiKey, max_reactions = max_react)
     total_rxns = len(reactions["rxn_data"])
     metrics["RHEA Reactions"] = total_rxns
+
+    print("fetched "+str(total_rxns)+" total reactions")
 
     if total_rxns > 0:
 
@@ -79,14 +172,20 @@ def fetch_data(smiles):
         print("fetching genes for "+str(smiles))
 
         for i in reactions["rxn_data"]:
-            associated_proteins = fetch_genes(i["rhea_id"], True, 20)
+            associated_proteins = fetch_genes(i["rhea_id"], reviewed, max_genes)
             i["proteins"] = associated_proteins
 
+        total_genes = sum([len(i["proteins"]) for i in reactions["rxn_data"]])
         metrics["Total genes"] = sum([len(i["proteins"]) for i in reactions["rxn_data"]])
 
+        print("fetched "+str(total_genes)+" total genes")
+
         # Filter homologous genes
-        reactions = filter_genes(reactions, lineage_filter_name = "Family")
+        reactions = filter_genes(reactions, lineage_filter_name = lineage_filter)
+        total_filtered_genes = sum([len(i["proteins"]) for i in reactions["rxn_data"]])
         metrics["Filtered genes"] = sum([len(i["proteins"]) for i in reactions["rxn_data"]])
+
+        print(str(total_filtered_genes)+" total filtered genes") 
 
         # FETCH OPERONS
 
@@ -106,6 +205,7 @@ def fetch_data(smiles):
                     protein = reactions["rxn_data"][rxn]["proteins"][i]
                     if protein["enzyme"]["ncbi_id"] !=  None:
                         total_genes +=1
+            print("Total genes: "+str(total_genes))
 
             for rxn in range(0,len(reactions["rxn_data"])):
                 for i in range(0, len(reactions["rxn_data"][rxn]["proteins"])):
@@ -114,11 +214,14 @@ def fetch_data(smiles):
                     if refseq_id != None:
 
                         # Limit number of operons evaluated to avoid program taking too long to complete.
-                        if operon_counter <= 20:
+                        if operon_counter <= max_operons:
                             protein["context"] = acc2operon(refseq_id)
+                            print("appended operon "+str(operon_counter))
                             operon_counter += 1
 
             metrics["Total operons"] = operon_counter
+            print("Total operons: "+str(operon_counter))
+
 
 
             # FETCH REGULATORS
@@ -139,6 +242,7 @@ def fetch_data(smiles):
                             regulators.append(r)
 
                 metrics["Total regulators"] = len(regulators)
+                print("Total regulators: "+str(len(regulators)))
 
                 # Filter out duplicate regulators
                 refseq_ids = []
@@ -178,7 +282,12 @@ def fetch_data(smiles):
 
 if __name__ == "__main__":
 
-    benchmark()
+    #file_name = "Second_pass_Ligify_benchmarking_dataset.xlsx"
+    # file_name = "Rerun2_of_Incorrectly-predicted_Ligify_benchmarking_dataset.xlsx"
+    #file_name = "Remaining_July12_Benchmarking_dataset.xlsx"
+    file_name = "ExpandOperon_Aug3_Benchmarking_dataset.xlsx"
+
+    benchmark(file_name, rigerous=3)
 
     #data = fetch_data("C=CC(=O)[O-]")
     #print(data)

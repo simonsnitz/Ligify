@@ -18,28 +18,31 @@ def acc2MetaData(access_id: str):
     parsed = xmltodict.parse(result.text)
 
     if "IPGReport" in parsed["IPGReportSet"].keys():
-        protein = parsed["IPGReportSet"]["IPGReport"]["ProteinList"]["Protein"]
+        if "ProteinList" in parsed["IPGReportSet"]["IPGReport"]:
+            protein = parsed["IPGReportSet"]["IPGReport"]["ProteinList"]["Protein"]
 
-        if isinstance(protein, list):
-            protein = protein[0]
+            if isinstance(protein, list):
+                protein = protein[0]
 
-        if "CDSList" not in protein.keys():
+            if "CDSList" not in protein.keys():
+                return "EMPTY"
+
+            CDS = protein["CDSList"]["CDS"]
+
+                #CDS is a list if there is more than 1 CDS returned, otherwise it's a dictionary
+            if isinstance(CDS, list):
+                CDS = CDS[0]
+
+            proteinDict = {
+                "accver":CDS["@accver"],
+                "start":CDS["@start"],
+                "stop":CDS["@stop"],
+                "strand":CDS["@strand"],
+            }
+
+            return proteinDict
+        else:
             return "EMPTY"
-
-        CDS = protein["CDSList"]["CDS"]
-
-            #CDS is a list if there is more than 1 CDS returned, otherwise it's a dictionary
-        if isinstance(CDS, list):
-            CDS = CDS[0]
-
-        proteinDict = {
-            "accver":CDS["@accver"],
-            "start":CDS["@start"],
-            "stop":CDS["@stop"],
-            "strand":CDS["@strand"],
-        }
-
-        return proteinDict
     else:
         return "EMPTY"
 
