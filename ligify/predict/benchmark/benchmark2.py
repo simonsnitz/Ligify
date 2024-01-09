@@ -48,7 +48,8 @@ def benchmark(file_name, rigerous=False):
         for i in range(0, len(smiles)):
 
             if pd.isna(df.loc[i, "ligify_predictions"]):
-                prediction = fetch_data(df.loc[i, "smiles"], rigerous)
+                genus = df.loc[i, "Genus"]
+                prediction = fetch_data(df.loc[i, "smiles"], rigerous, genus)
                 prediction = json.dumps(prediction)
                 #print(prediction)
                 df.loc[i, "ligify_predictions"] = prediction
@@ -118,12 +119,49 @@ def benchmark(file_name, rigerous=False):
         #             df.to_excel(file_name)
 
 
+
+def filter_by_genus(output, genus):
+
+    rxns = output["rxn_data"]
+
+        #DOUBLE LIST COMPREHENSION!!!
+    # num_proteins = len([protein for rxn in rxns for protein in rxn["proteins"]])
+    # output["metadata"]["number_reviewed_enzymes"] = num_proteins
+
+
+    #     # have to map name to number because names are more human readable, but numbers are how
+    #         # lineages are retrieved programmatically via the Uniprot API.
+
+
+    # filter out highly similar proteins
+    filtered_rxns = []
+    for rxn in rxns:
+        filtered_proteins = []
+        for protein in rxn["proteins"]:
+                # Sometimes the family name isn't provided in the lineage returned.
+            try:
+                if protein["organism"][5] == genus:
+                    filtered_proteins.append(protein)
+            except:
+                pass
+        new_rxn = rxn
+        new_rxn["proteins"] = filtered_proteins
+        filtered_rxns.append(new_rxn)
+
+    output["rxn_data"] = filtered_rxns
+
+        # count number of filtered proteins
+    # filtered_proteins = len([protein for rxn in filtered_rxns for protein in rxn["proteins"]])
+    # output["metadata"]["number_lineage_filtered_enzymes"] = filtered_proteins
+
+
+    return output
                 
 
 
 
 
-def fetch_data(smiles, rigerous):
+def fetch_data(smiles, rigerous, genus):
 
     InChiKey = get_inchikey(smiles, "smiles")
 
@@ -143,7 +181,7 @@ def fetch_data(smiles, rigerous):
         max_react = 100
         max_genes = 500
         reviewed = True
-        lineage_filter = "Genus"
+        lineage_filter = "None"
         max_operons = 1000
 
     else:
@@ -186,6 +224,12 @@ def fetch_data(smiles, rigerous):
         metrics["Filtered genes"] = sum([len(i["proteins"]) for i in reactions["rxn_data"]])
 
         print(str(total_filtered_genes)+" total filtered genes") 
+
+        # Filter genes by genus
+        reactions = filter_by_genus(reactions, genus)
+        total_filtered_genes = sum([len(i["proteins"]) for i in reactions["rxn_data"]])
+
+        print(str(total_filtered_genes)+" total genes after genus filter") 
 
         # FETCH OPERONS
 
@@ -285,8 +329,7 @@ if __name__ == "__main__":
     #file_name = "Second_pass_Ligify_benchmarking_dataset.xlsx"
     # file_name = "Rerun2_of_Incorrectly-predicted_Ligify_benchmarking_dataset.xlsx"
     #file_name = "Remaining_July12_Benchmarking_dataset.xlsx"
-    #file_name = "ExpandOperon_Aug3_Benchmarking_dataset.xlsx"
-    file_name = "Aug6_V2_Benchmarking_dataset.xlsx"
+    file_name = "Aug6_Benchmarking_dataset.xlsx"
 
     benchmark(file_name, rigerous=3)
 

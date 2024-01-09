@@ -22,6 +22,7 @@ def get_inchikey(input, prop):
      
 
 def get_smiles(input):
+
     URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/"+str(input)+"/property/CanonicalSMILES/TXT"
     response = requests.get(URL)
     if response.ok:
@@ -30,14 +31,24 @@ def get_smiles(input):
         return out
 
 
-def get_name(smiles):
-    URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/SMILES/"+str(smiles)+"/property/IUPACname/TXT"
-    response = requests.get(URL)
-    if response.ok:
-            # get the first entry
-        out = response.text.split("\n")[0]
-        return out
+def get_name(input, prop):
 
+    if prop == "smiles":
+        input = input.replace("\\", "")
+        URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/SMILES/"+str(input)+"/property/IUPACname/TXT"
+        response = requests.get(URL)
+        if response.ok:
+                # get the first entry
+            out = response.text.split("\n")[0]
+            return out
+
+    elif prop == "inchikey":
+        URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/InChiKey/"+str(input)+"/property/IUPACname/TXT"
+        response = requests.get(URL)
+        if response.ok:
+                # get the first entry
+            out = response.text.split("\n")[0]
+            return out
 
 def check_url(url):
 

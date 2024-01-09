@@ -191,13 +191,22 @@ def format_results(data_column, ligand_name):
             # Create the operon table
             genes = []
             for i in operon_json:
-                gene = {
-                    "RefSeq ID": i['accession'],
-                    "Description": i['description'],
-                    "Direction": i['direction'],
-                    "Start position": i['start'],
-                    "End position": i['stop']
-                }
+                if "description" in i.keys():
+                    gene = {
+                        "RefSeq ID": i['accession'],
+                        "Description": i['description'],
+                        "Direction": i['direction'],
+                        "Start position": i['start'],
+                        "End position": i['stop']
+                    }
+                else:
+                    gene = {
+                        "RefSeq ID": i['accession'],
+                        "Description": " ",
+                        "Direction": i['direction'],
+                        "Start position": i['start'],
+                        "End position": i['stop']
+                    }
                 genes.append(gene)
             operon_df = pd.DataFrame(genes)
 

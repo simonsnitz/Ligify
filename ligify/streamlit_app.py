@@ -108,7 +108,7 @@ def run_streamlit():
 
     if input_mode == 'SMILES':
         smiles = head2.text_input(label="Chemical SMILES", value="C=CC(=O)[O-]", label_visibility="collapsed")
-        chemical_name = get_name(smiles)
+        chemical_name = get_name(smiles, "smiles")
         InChiKey = get_inchikey(smiles, "smiles")
         chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
 
@@ -117,6 +117,12 @@ def run_streamlit():
         smiles = get_smiles(chemical_name)
         InChiKey = get_inchikey(chemical_name, "name")
         chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
+
+    # elif input_mode == 'InChiKey':
+    #     InChiKey = head2.text_input(label="InChiKey", value="BJIOGJUNALELMI-ONEGZZNKSA-N", label_visibility="collapsed")
+    #     chemical_name = get_name(InChiKey, "inchikey")
+    #     smiles = get_smiles(chemical_name)
+    #     chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
 
     elif input_mode == 'Draw':
         with col2:
@@ -162,7 +168,7 @@ def run_streamlit():
 
         adv_options.write("Fetch operons")
         max_operons = adv_options.number_input("Max number of operons evaluated", value=20)
-        lineage_filter_name = adv_options.selectbox("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "Genus"], index=4)
+        lineage_filter_name = adv_options.selectbox("Domain filter stringency", options=["Domain", "Phylum", "Class", "Order", "Family", "Genus", "None"], index=4)
         adv_options.divider()
 
         adv_options.write("Fetch regulators")
