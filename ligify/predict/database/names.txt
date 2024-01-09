@@ -1,0 +1,366 @@
+3-deoxy-D-glycero-hexo-2,5-diulosonate
+5-dehydro-D-gluconate
+4-hydroxybutyrate
+carnitine
+7-ammoniomethyl-7-deazaguanine
+sulfonatoacetaldehyde
+5-(2-hydroxyethyl)-4-methylthiazole
+2-dehydro-3-deoxy-D-gluconate
+trimethylammonium
+trimethylamine N-oxide
+2-oxopent-4-enoate
+dihydroxyacetone
+(S)-dihydroorotate
+(R)-acetoin
+4-(hydroxymethyl)benzenesulfonate
+4-formylbenzenesulfonate
+D-glucono-1,5-lactone
+2,5-dioxopentanoate
+octan-1-ol
+trans-isoeugenol
+3-(3-hydroxyphenyl)propanoate
+(S)-3-methyl-2-oxovalerate
+5'-S-methyl-5'-thioinosine
+2,3-dihydroxy-trans-cinnamate
+3-hydroxybenzoate
+pyridoxine
+3-hydroxyanthranilate
+L-cysteate(1-)
+(-)-ureidoglycolate
+(2S)-2-hydroxy-2-methyl-3-oxobutanoate
+aldehydo-N-acetyl-D-mannosamine
+phenylacetaldehyde
+N-acetyl-LL-2,6-diaminopimelate(1-)
+beta-D-ribopyranose
+beta-D-ribose
+alpha-L-fucose
+beta-L-fucose
+alpha-L-rhamnopyranose
+beta-L-rhamnopyranose
+2-dehydro-3-deoxy-L-rhamnonate
+(S)-lactaldehyde
+5-dehydro-2-deoxy-D-gluconate
+iminoaspartate(1-)
+dehypoxanthine futalosinate
+methanesulfonate
+4-nitrophenolate
+2-hydroxy-4-nitrophenolate
+2-aminophenol
+2-aminomuconic 6-semialdehyde zwitterion
+1,4-dihydroxy-2-naphthoate
+resorcinol
+(7R,8S)-7,8-diammoniononanoate
+aldehydo-D-galacturonate
+13-apo-beta-carotenone
+3-hydroxypropionate
+L-rhamnopyranose
+(S)-piperazin-4-ium-2-carboxamide(1+)
+1-pyrroline-2-carboxylic acid zwitterion
+2-hydroxychromene-2-carboxylate
+5-hydroxyisouric acid
+6-hydroxynicotinate(1-)
+pyridine-2,5-diol
+hydroxylamine
+5,6-dimethylbenzimidazole
+(3E)-4-(2-hydroxyphenyl)-2-oxobut-3-enoate
+D-xylopyranose
+N-formylmaleamate
+(S)-2-acetyl-2-hydroxybutanoate
+D-tagaturonate
+2'-deoxyguanosine
+2-dehydro-L-idonate
+O-succinyl-L-homoserinate(1-)
+trans-3-coumarate
+(3S)-3-hydroxy-D-aspartate(1-)
+(3R)-3-hydroxy-D-aspartate(1-)
+cytosine
+7-carboxylato-7-deazaguanine
+7-cyano-7-deazaguanine
+hydroxyacetone
+L-lyxopyranose
+L-xylulose
+(2R)-3-sulfopropanediol(1-)
+phosphonoacetaldehyde(1-)
+D-glucopyranuronate
+(S)-1-phenylethanol
+acetophenone
+3-dehydro-L-gulonate
+L-alanyl-L-glutamate(1-)
+L-alanyl-D-glutamate(1-)
+4-(L-gamma-glutamylamino)butanoate
+gamma-L-glutamylputrescinium(1+)
+dimethyl sulfide
+fluoroacetate
+3-oxo-3-phenylpropionate
+alpha-D-galactose
+lithium(1+)
+L-arabinopyranose
+aldehydo-D-glucuronate
+L-fucopyranose
+2'-deoxycytidine
+isethionate
+5-deoxy-D-ribofuranose
+(R)-pantothenate
+(S)-5-oxo-2,5-dihydro-2-furylacetate
+betaine aldehyde
+N-(2,3-dihydroxybenzoyl)-L-serinate
+sulfur atom
+pyrrole-2-carboxylate
+(1E,4S,5E,7R)-germacra-1(10),5-dien-11-ol
+(-)-geosmin
+2,3-dihydroxybenzoate
+methanethiol
+1H-pyrrole
+(S)-1-pyrroline-5-carboxylate
+ureidoacrylate
+(Z)-2-methylureidoacrylate
+(Z)-3-aminoacrylate
+pentalen-13-al
+4-amino-5-hydroxymethyl-2-methylpyrimidine
+1H-indole
+avermitilol
+(1R)-bornane-2,5-dione
+keto-D-fructose
+cyclic dehypoxanthinylfutalosinate(1-)
+4-hydroxystyrene
+bornane-2,6-dione
+[(1S)-4-hydroxy-2,2,3-trimethylcyclopent-3-enyl]acetate
+2-methoxy-4-vinylphenol
+2-deoxy-scyllo-inosamine(1+)
+3-ammonio-2,3-dideoxy-scyllo-inosose(1+)
+hydroquinone
+(2Z)-2-hydroxypenta-2,4-dienoate
+3,6-dioxocyclohexa-1,4-dien-1-olate
+(-)-5-oxo-1,2-campholide
+1-deoxypentalenate
+1-deoxy-11beta-hydroxypentalenate
+methylphosphonate(1-)
+dihydrocurcumin
+curcumin
+3,6-dichlorocatechol(1-)
+2,5-didehydro-D-gluconate
+chloramphenicol
+2,5-dihydroxybenzoate
+vanillate
+S,S-dimethyl-beta-propiothetin
+N-ethylmaleimide
+N-ethylsuccinimide
+cyclo(L-leucyl-L-leucyl)
+benzene-1,2,4-triol
+3-amino-3-deoxy-D-glucopyranose(1+)
+4-aminobenzoate
+(S)-4-hydroxy-2-oxohexanoate
+2,6-dimethyldeca-2,4,6,8-tetraenedial
+dihydrourocanate
+urocanate
+Tetrahydrobiopterin-4a-carbinolamine
+3,4-dihydroxybenzaldehyde
+2,4-didehydro-3-deoxy-L-rhamnonate
+(5R)-carbapenem-3-carboxylate
+N-isovaleryl-L-homoserine lactone
+N-(4-coumaroyl)-L-homoserine lactone
+2-amino-5-chlorophenol
+2-amino-5-chloro-cis,cis-muconic 6-semialdehyde
+(S)-dichlorprop(1-)
+(S)-2-(4-chloro-2-methylphenoxy)propanoate
+2-heptyl-4-hydroxyquinoline
+2-heptyl-3-hydroxy-4-quinolone
+homogentisate
+(R)-3-phenyllactate
+N(alpha),N(alpha),N(alpha)-trimethyl-L-histidine
+2-iminobutanoic acid
+5-oxopentanoate
+(2S)-3-sulfopropanediol(1-)
+L-3-sulfolactaldehyde(1-)
+2-iminopropionic acid
+2-hydroxy-(indol-3-yl)acetate
+(4R)-4-hydroxy-L-lysine(1+)
+(Z)-3-amino-2-methylacrylate
+ethylene glycol
+thiogeraniol
+2-hydroxy-5-methyl-1-naphthoate
+keto-D-tagatose
+keto-D-sorbose
+dinitrogen
+isatin
+2-aminophenylglyoxylate
+beta-D-glucuronate
+D-glucaro-1,5-lactone(1-)
+ammonioacetone
+arsenite(1-)
+heptanal
+5-aminoimidazol-3-ium ribonucleoside
+glycolaldehyde
+D-galactaro-1,5-lactone(1-)
+2-dehydro-3-deoxy-D-galactonate
+glycochenodeoxycholate
+4-hydroxyphenyl acetate
+glycodeoxycholate
+taurodeoxycholate
+ethionamide
+ethionamide S-oxide
+2-ethylhexyl sulfate(1-)
+2-ethylhexanal
+N-acetylmethionine sulfone(1-)
+N-acetyl-L-methionine sulfoximine(1-)
+isoguanine
+4-hydroxybenzaldehyde
+guaiacol
+2-acetamido-5-oxopentanoate
+3alpha,12alpha-dihydroxy-7-oxo-5beta-cholanate
+3-chlorocatechol
+D-threitol
+D-erythrulose
+erythritol
+3,4-dichlorocatechol
+(2,4-dichlorophenoxy)acetate
+dibenzothiophene
+dibenzothiophene sulfone
+dibenzothiophene 5-oxide
+keto-L-sorbose
+2,6-dihydroxybenzoate
+4-[(2-hydroxyethoxy)carbonyl]benzoate
+methyl acetate
+hexanal
+2-amino-6-(hydroxymethyl)-7,8-dihydropteridin-4-one
+toluene-4-sulfonate
+oxamate
+D-ribulose
+D-xylulose
+keto-D-fructuronate
+mevastatin
+pravastatin lactone
+3,4,6-trichlorocatechol(1-)
+tetrachloro-1,4-benzoquinone
+N-acetylcadaverine(1+)
+D-threonate
+D-erythronate
+L-threonate
+(S)-3,4-dihydroxy-2-oxobutanoate
+(S)-2,4-dihydroxy-3-oxobutanoate
+(R)-2,4-dihydroxy-3-oxobutanoate
+N-propanoyl-L-methioninate
+N-acetyl-L-alpha-phenylglycinate
+pyridoxal
+indoxyl
+L-ribulose
+phenylacetate
+3-mercaptopropionate
+7-oxotaurolithocholate
+7-oxoglycolithocholate
+7-oxoglycodeoxycholate
+7-epi-alpha-eudesmol
+selina-4(15),7(11)-diene
+4-sulfanylbutanoate
+5,6-diaminouracil
+(3R)-3-hydroxy-4-oxobutanoate
+N,N-dimethyl-1,4-phenylenediamine
+2,3,6-trichloro-4-hydroxyphenolate
+2,6-dichloro-4-hydroxyphenolate
+D-apiose
+apulose
+D-apionate
+3-oxoisoapionate
+anisole
+3-methoxycatechol
+pyrogallol
+2-ethoxyphenol
+2-methylanisole
+o-cresol
+2-hydroxydodecanoate
+2,3-dihydroxydodecanoate
+vanillin
+1-carboxybiuret(1-)
+acrylate
+2,4-diacetylphloroglucinol(1-)
+2',4',6'-trihydroxyacetophenone
+(2Z,4E)-2-hydroxy-6-oxohepta-2,4-dienoate
+D-xylonate
+3-(imidazol-5-yl)pyruvate
+2-dehydropantoate
+m-tyraminium
+2-ammonio-2-deoxy-D-glucopyranose
+peroxynitrite
+2,4,6-trichlorophenolate
+2,6-dichlorobenzoquinone
+pentyl sulfate(1-)
+pentanal
+hexyl sulfate(1-)
+heptyl sulfate(1-)
+(R)-1-phenylethanol
+2,5-hexanedione
+(2R,5R)-hexanediol
+ethyl acetoacetate
+ethyl (R)-3-hydroxybutanoate
+2-octanone
+(2R)-octan-2-ol
+3-oxopropane-1-sulfonate
+4-methoxybenzoate
+phenylglyoxylate
+trimethylarsine
+methylarsonous acid
+dimethylarsinous acid
+N-acetylputrescinium
+cyanuric acid
+4-ethylphenol
+L-mannopyranose
+L-xylopyranose
+methyl beta-D-galactoside
+N(omega),N(omega)-dimethyl-L-argininium(1+)
+2-chloro-6-hydroxy-1,4-benzoquinone(1-)
+3,4-Dihydroxystyrene
+4-Ethyl-1,2-benzenediol
+4-Ethyl-2-methoxyphenol
+formimidic acid
+triuret
+5-oxo-4,5-dihydro-2-furylacetate
+L-rhamnonate
+(R)-(2-chloro-5-oxo-2,5-dihydro-2-furyl)acetate
+2,3,5,6-tetrachlorophenolate
+selanide
+D-arabinitol
+(-)-germacrene D
+fluoren-9-ol
+fluoren-9-one
+L-arogenate(1-)
+L-fuculose
+2-dehydro-D-gluconate
+D-fructofuranuronate
+trans-urocanate
+(S)-2-amino-6-oxopimelate
+S-methyl-5-thio-D-ribofuranose
+(S)-mandelate
+(R)-mandelate
+2-methyl-3-oxopropanoate
+aldehydo-D-lyxose
+L-histidinol phosphate(1-)
+beta-L-arabinopyranose
+N-formimidoyl-L-glutamate(1-)
+dichloromethane
+L-arabinonate
+5-chlorocarbonyl-4-hydroxy-penta-2,4-dienoate
+(1S,2R)-3-phenylcyclohexa-3,5-diene-1,2-diol
+2-dehydro-3-deoxy-L-arabinonate
+3-hydroxyisobutyrate
+cis,cis-2-ammonio-3-(3-oxoprop-1-enyl)but-2-enedioate(1-)
+N-carbamoylputrescinium(1+)
+biphenyl
+chloramphenicol 3-acetate
+3-oxo-3-ureidopropanoate
+L-homoserine lactone(1+)
+3-dehydrocarnitine
+octane
+N,N-dimethylformamide
+L-rhamnulose
+choline sulfate
+2,3-diketogulonate
+guaiacylglycerol-beta-guaiacyl ether
+beta-D-galacturonate
+(S)-4-hydroxy-2-oxopentanoate
+alpha-D-xylose
+alpha-D-xylulofuranose
+(R)-mandelamide
+4'-hydroxyacetophenone
+2,5,6-triamino-4-hydroxypyrimidine
+2,3-dihydroxy-p-cumate
+mercury atom

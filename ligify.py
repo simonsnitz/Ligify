@@ -6,10 +6,7 @@ from ligify.streamlit_app import run_streamlit, run_ligify
 
 
 def streamlit_run():
-    chem, regulator_column, data_column, prog, chemical_name, filters = run_streamlit()
-    run_ligify(chem, regulator_column, data_column, prog, chemical_name, filters)
+    chem, results, prog, smiles, filters = run_streamlit()
+    run_ligify(chem, results, prog, smiles, filters)
 
 streamlit_run()
-
-# if __name__ == '__main__':
-#     streamlit_run()
