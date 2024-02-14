@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  nginx:
+    container_name: nginx
+    build: ./nginx
+    restart: always
+    ports:
+      - 80:80
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: '0.1g'
+
+  ligify:
+    container_name: ligify
+    build:
+      ./streamlit
+    restart: always
+    entrypoint: ["streamlit", "run", "entry.py"]
+    ports:
+      - 8501:8501
+    depends_on:
+      - nginx
+    deploy:
+      resources:
+        limits:
+          cpus: '1.8'
+          memory: '0.9g'
