@@ -127,7 +127,7 @@ def run_streamlit():
     elif input_mode == 'Draw':
         with col2:
             smiles = st_ketcher("C=CC(=O)[O-]", height=400)
-            chemical_name = get_name(smiles)
+            chemical_name = get_name(smiles, "smiles")
             InChiKey = get_inchikey(chemical_name, "name")
             chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
 
@@ -216,7 +216,7 @@ def run_streamlit():
 
 
 
-
+# This is essentially the frontend component of the Ligify Web applications.
 
 def run_ligify(chem, results, progress, chemical, filters):
 
