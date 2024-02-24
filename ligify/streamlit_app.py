@@ -143,8 +143,8 @@ def run_streamlit():
         st.markdown("<p style='font-size: 12px'>If you have any questions or would like to report any bugs, please contact us via <a href='mailto: simonsnitz@gmail.com'>Email</a>. \
             Our code is publically available on <a href='https://github.com/simonsnitz/Ligify'>GitHub</a>.</p>", unsafe_allow_html=True)
 
-        #st.markdown("<div style='font-size: 12px;'>d'Oelsnitz S., Stofel S.K., and Ellington A.D. (2023) Snowprint: a predictive tool for genetic biosensor discovery. \
-        #            <i>bioRxiv</i> <b>DOI:</b><a href='https://www.biorxiv.org/content/10.1101/2023.04.29.538814v1'>10.1101/2023.04.29.538814v1</a></div> <br>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size: 12px;'>d'Oelsnitz S., Ellington A.D., and Ross D.J. (2024) Ligify: Automated genome mining for ligand-inducible transcription factors. \
+                   <i>bioRxiv</i> <b>DOI:</b><a href='https://www.biorxiv.org/content/10.1101/2024.02.20.581298v1'>10.1101/2024.02.20.581298</a></div> <br>", unsafe_allow_html=True)
 
         st.markdown("<p style='font-size: 12px'>Ligify development was supported by the National Institute of Standards and Technology (70NANB21H100)", unsafe_allow_html=True)
 
