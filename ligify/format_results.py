@@ -30,7 +30,7 @@ def download_button(object_to_download, download_filename):
     return dl_link
 
 
-def download_df(ligand_name):
+def download_df(ligand_name, genbank_con):
 
     # Figure out which direction the promoter should be facing
     enzyme_direction = st.session_state.data['protein']['context']['enzyme_direction']
@@ -48,10 +48,16 @@ def download_df(ligand_name):
     
 
     data = create_genbank(regulator_name, ligand_name, promoter_seq, regulator_protein_seq)
-    components.html(
-        download_button(data, "pLigify_"+str(regulator_name)+".gb"),
-        height=0,
-    )
+    '''
+    Having trouble downloading the GenBank file when not locally hosted, so we'll just display it in the browser.
+    '''
+    # components.html(
+    #     download_button(data, "pLigify_"+str(regulator_name)+".gb"),
+    #     height=0,
+    # )
+
+    genbank_con.subheader("Biosensor plasmid GenBank")
+    genbank_con.code(data)
 
 
 
@@ -89,7 +95,12 @@ def format_results(data_column, ligand_name):
             "Organism": organism_name,
         }
         
+            #Regulator container
         regulator_con = data_column.container()
+
+            #GenBank container
+        genbank_con = data_column.container()   
+
         reg_info, reg_spacer, reg_genbank = regulator_con.columns((8,1,5))
         regulator_df = pd.DataFrame(reg_json, index=["name"]).astype(str)
         regulator_df.set_index("name", inplace=True)
@@ -99,7 +110,7 @@ def format_results(data_column, ligand_name):
 
         reg_genbank.header("")
         reg_genbank.header("")
-        reg_genbank.form_submit_button(label="Download Plasmid", type="primary", on_click=download_df, args=(ligand_name,))
+        reg_genbank.form_submit_button(label="Show Plasmid", type="primary", on_click=download_df, args=(ligand_name,genbank_con))
         reg_genbank.markdown(f'<p style="font-size: 16px">This plasmid is designed to induce GFP expression in the presence of the target molecule via '+str(refseq)+', within E. coli</>', unsafe_allow_html=True)
 
 
@@ -107,7 +118,6 @@ def format_results(data_column, ligand_name):
 
         # Enzyme info
         enz_annotation = st.session_state.data['protein']['enzyme']['description']
-        #enz_uniprot = st.session_state.data['protein']['enzyme']['uniprot_id']
         enz_refseq = st.session_state.data['protein']['enzyme']['ncbi_id']
         equation = st.session_state.data['equation'] 
         rhea_id = st.session_state.data['rhea_id'] 
@@ -246,4 +256,4 @@ def format_results(data_column, ligand_name):
                     c += 1
                 operon_seq += html
             st.markdown("<h5>Full operon sequence</h5>", unsafe_allow_html=True)
-            st.markdown(operon_seq, unsafe_allow_html=True)
+            st.markdown(operon_seq, unsafe_allow_html=True)     
