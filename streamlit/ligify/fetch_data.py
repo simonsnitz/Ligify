@@ -43,6 +43,7 @@ def fetch_data(InChiKey, filters):
         reactions = filter_genes(reactions, lineage_filter_name = filters["lineage"])
         metrics["Filtered genes"] = sum([len(i["proteins"]) for i in reactions["rxn_data"]])
 
+
         # FETCH OPERONS
 
         if len(reactions["rxn_data"]) == 0:
@@ -97,10 +98,12 @@ def fetch_data(InChiKey, filters):
                 # This is where all of the display data is created
                 counter = 0
                 regulators = []
+                
+
                 for rxn in reactions["rxn_data"]:
                     for protein in rxn["proteins"]:
                         prog_value = int(80+counter*prog_bar_increment)
-                        prog_bar.progress(prog_value, text=f"4. Fetching data for regulator {str(counter+1)} of {str(total_rxns)} ({protein['organism'][-2]}, {protein['organism'][-1]})")
+                        prog_bar.progress(prog_value, text=f"4. Fetching data for regulator {str(counter+1)} of {str(total_regs)} ({protein['organism'][-2]}, {protein['organism'][-1]})")
 
                         regs = pull_regulators(protein, rxn)
                         for r in regs:
@@ -109,6 +112,7 @@ def fetch_data(InChiKey, filters):
 
                 metrics["Total regulators"] = len(regulators)
                 prog_bar.empty()
+
 
 
                 # Filter out duplicate regulators
@@ -132,6 +136,8 @@ def fetch_data(InChiKey, filters):
                     return None, None
                 else:
                     return filtered_regulators, metrics
+
+
     else:
         prog_bar.empty()
         return None, None

@@ -25,7 +25,6 @@ def codon_opt(protein_seq:str):
     # GET THE FINAL SEQUENCE (AS STRING OR ANNOTATED BIOPYTHON RECORDS)
 
     final_sequence = problem.sequence  # string
-    print(final_sequence)
     return final_sequence
 
 

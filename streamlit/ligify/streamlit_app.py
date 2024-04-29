@@ -13,7 +13,7 @@ from ligify.predict.pubchem import get_smiles, get_inchikey, get_name
 
 def setup_page():
     
-    st.set_page_config(page_title="Ligify", layout='wide', initial_sidebar_state='auto')
+    st.set_page_config(page_title="Ligify", layout='wide', initial_sidebar_state='auto', page_icon="images/Ligify_Favicon.png")
     #sys.tracebacklimit = 0 #removes traceback so code is not shown during errors
 
     hide_streamlit_style = '''
@@ -95,8 +95,7 @@ def run_streamlit():
     # HEADER
     head = st.container()
     head1, head2, head3 = head.columns((1,2,1))
-
-    head2.markdown("<h1 style='text-align: center; color: black;'>Ligify</h1>", unsafe_allow_html=True)
+    head2.image("images/Ligify_Logo.png", use_column_width=True)
     head2.subheader('Predict sensors responsive to an input ligand')
 
     input_mode = head2.radio(label="Select an input mode", options=["SMILES", "Name", "Draw"], horizontal=True)
@@ -127,7 +126,7 @@ def run_streamlit():
     elif input_mode == 'Draw':
         with col2:
             smiles = st_ketcher("C=CC(=O)[O-]", height=400)
-            chemical_name = get_name(smiles)
+            chemical_name = get_name(smiles, "smiles")
             InChiKey = get_inchikey(chemical_name, "name")
             chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
 
@@ -144,8 +143,8 @@ def run_streamlit():
         st.markdown("<p style='font-size: 12px'>If you have any questions or would like to report any bugs, please contact us via <a href='mailto: simonsnitz@gmail.com'>Email</a>. \
             Our code is publically available on <a href='https://github.com/simonsnitz/Ligify'>GitHub</a>.</p>", unsafe_allow_html=True)
 
-        #st.markdown("<div style='font-size: 12px;'>d'Oelsnitz S., Stofel S.K., and Ellington A.D. (2023) Snowprint: a predictive tool for genetic biosensor discovery. \
-        #            <i>bioRxiv</i> <b>DOI:</b><a href='https://www.biorxiv.org/content/10.1101/2023.04.29.538814v1'>10.1101/2023.04.29.538814v1</a></div> <br>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size: 12px;'>d'Oelsnitz S., Ellington A.D., and Ross D.J. (2024) Ligify: Automated genome mining for ligand-inducible transcription factors. \
+                   <i>bioRxiv</i> <b>DOI:</b><a href='https://www.biorxiv.org/content/10.1101/2024.02.20.581298v1'>10.1101/2024.02.20.581298</a></div> <br>", unsafe_allow_html=True)
 
         st.markdown("<p style='font-size: 12px'>Ligify development was supported by the National Institute of Standards and Technology (70NANB21H100)", unsafe_allow_html=True)
 
@@ -216,7 +215,7 @@ def run_streamlit():
 
 
 
-
+# This is essentially the frontend component of the Ligify Web applications.
 
 def run_ligify(chem, results, progress, chemical, filters):
 
