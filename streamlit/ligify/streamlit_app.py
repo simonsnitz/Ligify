@@ -13,7 +13,7 @@ from ligify.predict.pubchem import get_smiles, get_inchikey, get_name
 
 def setup_page():
     
-    st.set_page_config(page_title="Ligify", layout='wide', initial_sidebar_state='auto', page_icon="images/Ligify_Favicon.png")
+    st.set_page_config(page_title="Ligify", layout='wide', initial_sidebar_state='auto', page_icon="ligify/images/Ligify_Favicon.png")
     #sys.tracebacklimit = 0 #removes traceback so code is not shown during errors
 
     hide_streamlit_style = '''
@@ -95,7 +95,7 @@ def run_streamlit():
     # HEADER
     head = st.container()
     head1, head2, head3 = head.columns((1,2,1))
-    head2.image("images/Ligify_Logo.png", use_column_width=True)
+    head2.image("ligify/images/Ligify_Logo.png", use_column_width=True)
     head2.subheader('Predict sensors responsive to an input ligand')
 
     input_mode = head2.radio(label="Select an input mode", options=["SMILES", "Name", "Draw"], horizontal=True)
