@@ -7,7 +7,7 @@ from ligify.predict.accID2operon import acc2operon
 from ligify.predict.rank import calculate_rank
 
 
-@st.cache_data
+@st.cache_data(persist=True)
 def fetch_data(InChiKey, filters):
 
     prog_container = st.container()
