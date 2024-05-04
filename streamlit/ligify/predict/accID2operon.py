@@ -1,3 +1,4 @@
+import streamlit as st
 import requests
 import re
 from pprint import pprint
@@ -13,7 +14,8 @@ def acc2MetaData(access_id: str):
     
     result = requests.get(f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&id={access_id}&rettype=ipg")
     if result.status_code != 200:
-            print("non-200 HTTP response. eFetch failed")
+            st.error("Sorry! NCBI won't send us data due to high traffic. Please try again soon.\
+            (metadata eFetch HTTP !== 200)")
 
     parsed = xmltodict.parse(result.text)
 
@@ -47,24 +49,6 @@ def acc2MetaData(access_id: str):
         return "EMPTY"
 
 
-
-
-
-
-
-
-    # OLD VERSION
-
-# def NC2genome(genome_id, startPos, stopPos):
-
-#     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore"
-#     response = requests.get(base_url+"&id="+str(genome_id)+"&seq_start="+str(startPos)+"&seq_stop="+str(stopPos)+"&rettype=fasta_cds_aa")
-#     # old script that fetches the entire genome
-#     # response = requests.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id='+str(genome_id)+'&rettype=fasta_cds_aa')
-
-#     if response.ok:
-#         genome = response.text.split("\n")
-#         return genome
 
 
 
@@ -158,6 +142,10 @@ def NC2genome(genome_id, operon):
 
         return out, genome_reassembly_match
 
+    else:
+        st.error("Sorry! NCBI won't send us data due to high traffic. Please try again soon.\
+            (genome eFetch HTTP !== 200)")
+
 
 
 
@@ -182,7 +170,8 @@ def getGenes(genome_id, startPos, stopPos):
                     response = requests.get(base_url+"&id="+str(genome_id)+"&seq_start="+str(startPos-5000)+"&seq_stop="+str(stopPos)+"&rettype=fasta_cds_aa")
                     genome = response.text.split("\n")
                 except:
-                    print("error fetching the genome fragment")
+                    st.error("Sorry! NCBI won't send us data due to high traffic. Please try again soon.\
+                        (genome-fragment eFetch HTTP !== 200)")
 
 
     re1 = re.compile(str(startPos))
@@ -397,7 +386,8 @@ def predict_promoter(operon, regIndex, genome_id):
             # print('WARNING: Intergenic region is over 800bp')
             return None
     else:
-        print('FATAL: Bad eFetch request')
+        st.error("Sorry! NCBI won't send us data due to high traffic. Please try again soon.\
+            (promoter eFetch HTTP !== 200)")
         return None
 
          # 800bp cutoff for an inter-operon region. 
