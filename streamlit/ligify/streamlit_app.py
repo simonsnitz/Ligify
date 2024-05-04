@@ -13,6 +13,7 @@ from ligify.predict.pubchem import get_smiles, get_inchikey, get_name
 
 def setup_page():
     
+    
     st.set_page_config(page_title="Ligify", layout='wide', initial_sidebar_state='auto', page_icon="ligify/images/Ligify_Favicon.png")
     #sys.tracebacklimit = 0 #removes traceback so code is not shown during errors
 
@@ -27,7 +28,8 @@ def setup_page():
 
     st.markdown(f'<div style="text-align: right; font-size: 0.9em"> Version: {ligify_version} </div>', unsafe_allow_html=True)
 
-
+    # removed traceback error messages
+    st.markdown(""" <style> .css-nps9tx, .e1m3hlzs0, .css-1p0bytv, .e1m3hlzs1 { visibility: collapse; height: 0px; } </style> """, unsafe_allow_html=True)
 
 
     # Removes the full-screen button for various elements
