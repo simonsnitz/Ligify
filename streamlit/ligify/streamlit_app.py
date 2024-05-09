@@ -102,6 +102,7 @@ def run_streamlit():
 
     input_mode = head2.radio(label="Select an input mode", options=["SMILES", "Name", "Draw"], horizontal=True)
 
+
     # OPTIONS
     options = st.container()
     col1, col2, col3 = options.columns((1,3,1))
@@ -133,7 +134,7 @@ def run_streamlit():
             chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
 
 
-
+    head2.write('Note: Chemical identifiers must be specific. For example, use `D-ribofuranose` rather than `ribose`')
 
     with st.sidebar:
 
@@ -193,7 +194,7 @@ def run_streamlit():
 
         # SUBMIT BUTTON
         submit = st.container()
-        submit_spacer_1, submit_button, submit_spacer_2 = submit.columns([5,1,5])
+        submit_spacer_1, submit_button, submit_spacer_2 = submit.columns([5,3,5])
         submitted = submit_button.form_submit_button("Submit", use_container_width=True, on_click=_connect_form_cb, args=(True,))
 
         # PROGRESS BAR
