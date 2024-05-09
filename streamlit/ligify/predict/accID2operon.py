@@ -14,39 +14,41 @@ def acc2MetaData(access_id: str):
     
     result = requests.get(f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&id={access_id}&rettype=ipg")
     if result.status_code != 200:
-            st.error("Sorry! NCBI won't send us data due to high traffic. Please try again soon.\
+        st.error("Sorry! NCBI won't send us data due to high traffic. Please try again soon.\
             (metadata eFetch HTTP !== 200)")
+        return "EMPTY"
 
-    parsed = xmltodict.parse(result.text)
+    else:
+        parsed = xmltodict.parse(result.text)
 
-    if "IPGReport" in parsed["IPGReportSet"].keys():
-        if "ProteinList" in parsed["IPGReportSet"]["IPGReport"]:
-            protein = parsed["IPGReportSet"]["IPGReport"]["ProteinList"]["Protein"]
+        if "IPGReport" in parsed["IPGReportSet"].keys():
+            if "ProteinList" in parsed["IPGReportSet"]["IPGReport"]:
+                protein = parsed["IPGReportSet"]["IPGReport"]["ProteinList"]["Protein"]
 
-            if isinstance(protein, list):
-                protein = protein[0]
+                if isinstance(protein, list):
+                    protein = protein[0]
 
-            if "CDSList" not in protein.keys():
+                if "CDSList" not in protein.keys():
+                    return "EMPTY"
+
+                CDS = protein["CDSList"]["CDS"]
+
+                    #CDS is a list if there is more than 1 CDS returned, otherwise it's a dictionary
+                if isinstance(CDS, list):
+                    CDS = CDS[0]
+
+                proteinDict = {
+                    "accver":CDS["@accver"],
+                    "start":CDS["@start"],
+                    "stop":CDS["@stop"],
+                    "strand":CDS["@strand"],
+                }
+
+                return proteinDict
+            else:
                 return "EMPTY"
-
-            CDS = protein["CDSList"]["CDS"]
-
-                #CDS is a list if there is more than 1 CDS returned, otherwise it's a dictionary
-            if isinstance(CDS, list):
-                CDS = CDS[0]
-
-            proteinDict = {
-                "accver":CDS["@accver"],
-                "start":CDS["@start"],
-                "stop":CDS["@stop"],
-                "strand":CDS["@strand"],
-            }
-
-            return proteinDict
         else:
             return "EMPTY"
-    else:
-        return "EMPTY"
 
 
 
@@ -145,6 +147,7 @@ def NC2genome(genome_id, operon):
     else:
         st.error("Sorry! NCBI won't send us data due to high traffic. Please try again soon.\
             (genome eFetch HTTP !== 200)")
+        return "EMPTY", False
 
 
 
@@ -172,6 +175,7 @@ def getGenes(genome_id, startPos, stopPos):
                 except:
                     st.error("Sorry! NCBI won't send us data due to high traffic. Please try again soon.\
                         (genome-fragment eFetch HTTP !== 200)")
+                    return None
 
 
     re1 = re.compile(str(startPos))

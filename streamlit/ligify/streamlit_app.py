@@ -134,7 +134,8 @@ def run_streamlit():
             chemical = {"name": chemical_name, "smiles": smiles, "InChiKey": InChiKey}
 
 
-    head2.write('Note: Chemical identifiers must be specific. For example, use `D-ribofuranose` rather than `ribose`')
+    head2.write('Note: Chemical identifiers must be specific. For example, use `D-ribofuranose` rather than `ribose`.\
+                Also consider trying an alternative input mode for your chemical.')
 
     with st.sidebar:
 
