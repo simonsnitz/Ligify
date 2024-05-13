@@ -6,12 +6,16 @@ services:
     build: ./nginx
     restart: always
     ports:
-      - 80:80
-    deploy:
-      resources:
-        limits:
-          cpus: '0.2'
-          memory: '0.1g'
+      - "80:80"
+      - "443:443"
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    entrypoint: ["/bin/sh", "-c", "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;"]
 
   ligify:
     container_name: ligify
@@ -23,8 +27,3 @@ services:
       - 8501:8501
     depends_on:
       - nginx
-    deploy:
-      resources:
-        limits:
-          cpus: '1.8'
-          memory: '0.9g'
