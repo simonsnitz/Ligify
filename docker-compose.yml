@@ -12,25 +12,51 @@ services:
       - ./data/certbot/www:/var/www/certbot
       - ./data/certbot/conf:/etc/letsencrypt
       
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
-# Use the below command to create an initial certificate
-#     entrypoint: ["/bin/sh", "-c"]
-#     command: ["certbot certonly --webroot --webroot-path=/var/www/certbot --email ENTER_EMAIL_HERE --agree-tos --no-eff-em
-# ail -d ligify.groov.bio --non-interactive"]
-    entrypoint: ["/bin/sh", "-c", "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;"]
+#   certbot:
+#     image: certbot/certbot
+#     container_name: certbot
+#     volumes:
+#       - ./data/certbot/conf:/etc/letsencrypt
+#       - ./data/certbot/www:/var/www/certbot
+# # Use the below command to create an initial certificate
+# #     entrypoint: ["/bin/sh", "-c"]
+# #     command: ["certbot certonly --webroot --webroot-path=/var/www/certbot --email ENTER_EMAIL_HERE --agree-tos --no-eff-em
+# # ail -d ligify.groov.bio --non-interactive"]
+#     entrypoint: ["/bin/sh", "-c", "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;"]
+
 
   ligify:
     container_name: ligify
-    build:
-      ./streamlit
+    build: ./streamlit
     restart: always
     entrypoint: ["streamlit", "run", "entry.py"]
     ports:
       - 8501:8501
     depends_on:
       - nginx
+      - redis
+      - celery_worker
+
+  redis:
+    image: redis:5.0.4
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  celery_worker:
+    container_name: celery_worker
+    build:
+      context: ./streamlit
+      dockerfile: Dockerfile.celery
+    command: celery -A celery_worker worker --loglevel=info --concurrency=1
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+volumes:
+  redis-data:
