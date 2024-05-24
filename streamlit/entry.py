@@ -5,8 +5,6 @@ import time
 
 def streamlit_run():
     chem, results, prog, chemical, filters = run_streamlit()
-    
-    print('STREAMLIT_RUN')
 
     if st.session_state.SUBMITTED:
         # Start Celery task
@@ -22,7 +20,6 @@ def streamlit_run():
         if task.state == 'SUCCESS':
             st.session_state.result = task.result
             st.session_state.task_id = None
-            print('APP IS SUCCESS')
             st.experimental_rerun()  # Force rerun to update UI
         elif task.state == 'PENDING':
             st.write('Task is in the queue, please wait...')
@@ -42,7 +39,5 @@ def streamlit_run():
 
         # Update the UI with the results
         run_ligify(chem, results, prog, chemical, filters, regulators, metrics)
-        
-    print(st.session_state)
 
 streamlit_run()

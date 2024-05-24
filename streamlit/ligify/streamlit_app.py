@@ -225,10 +225,8 @@ def run_ligify(chem, results, progress, chemical, filters, regulators, metrics):
 
     m_spacer1, metrics_col, m_spacer2 = results.container().columns((1,3,1))
     regulator_column, data_column = results.columns([1,3])
-    
-    print('inside')
 
-    if chemical["smiles"] == None:
+    if chemical["smiles"] == None or (regulators is None and metrics is None):
             data_column.subheader("Chemical input was not recognized. Please try a different input method.")
 
     else:
@@ -239,10 +237,9 @@ def run_ligify(chem, results, progress, chemical, filters, regulators, metrics):
         if not regulators and not metrics:
             regulators, metrics = fetch_data(chemical["InChiKey"], filters)
 
-        select_spacerL, please_select, select_spacerR  = data_column.container().columns([1,2,1])     
+        select_spacerL, please_select, select_spacerR  = data_column.container().columns([1,2,1])    
         
-        for entry in regulators:
-            format_results(data_column, chemical["name"], entry)
+        format_results(data_column, chemical["name"]) 
 
         regulator_column.header('')
         regulator_column.subheader('Sensor candidates')
