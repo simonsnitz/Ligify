@@ -226,7 +226,7 @@ def run_ligify(chem, results, progress, chemical, filters, regulators, metrics):
     m_spacer1, metrics_col, m_spacer2 = results.container().columns((1,3,1))
     regulator_column, data_column = results.columns([1,3])
 
-    if chemical["smiles"] == None or (regulators is None and metrics is None):
+    if chemical["smiles"] == None:
             data_column.subheader("Chemical input was not recognized. Please try a different input method.")
 
     else:
@@ -234,8 +234,8 @@ def run_ligify(chem, results, progress, chemical, filters, regulators, metrics):
         # SMILES = str(chemical_smiles)
         # chem.image(f'http://hulab.rxnfinder.org/smi2img/{SMILES}/', width=200)
         
-        if not regulators and not metrics:
-            regulators, metrics = fetch_data(chemical["InChiKey"], filters)
+        # if not regulators and not metrics:
+        #     regulators, metrics = fetch_data(chemical["InChiKey"], filters)
 
         select_spacerL, please_select, select_spacerR  = data_column.container().columns([1,2,1])    
         
