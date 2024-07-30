@@ -15,7 +15,7 @@ app.conf.update(
     worker_concurrency=1,  # Ensure only one task is processed at a time
 )
 
-@app.task
+@app.task(bind=True)
 def run_ligify_task(chemical, filters):
     try:
         # self.update_state(state="STARTED")
