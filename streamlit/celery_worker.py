@@ -22,14 +22,10 @@ def run_ligify_task(self, chemical, filters):
         # Fetch data
         regulators, metrics = fetch_data(chemical["InChiKey"], filters)
 
-        # self.update_state(state="SUCCESS")
-        # time.sleep(1000) # Display the message
+        self.update_state(state="SUCCESS")
+        time.sleep(2000) # Display the message for users to see
         
         return {"regulators": regulators, "metrics": metrics}
     except Exception as e:
         print(e)
-        # Optionally, you can store the error details in the result backend
-        # self.update_state(
-        #     state='FAILURE',
-        #     meta={'exc_type': type(e).__name__, 'exc_message': str(e)}
-        # )
+        self.update_state(state='FAILURE')
