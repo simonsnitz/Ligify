@@ -21,9 +21,6 @@ def run_ligify_task(self, chemical, filters):
         self.update_state(state="STARTED")
         # Fetch data
         regulators, metrics = fetch_data(chemical["InChiKey"], filters)
-
-        self.update_state(state="SUCCESS")
-        time.sleep(2000) # Display the message for users to see
         
         return {"regulators": regulators, "metrics": metrics}
     except Exception as e:
