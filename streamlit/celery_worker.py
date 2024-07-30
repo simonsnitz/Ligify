@@ -18,7 +18,7 @@ app.conf.update(
 @app.task(bind=True)
 def run_ligify_task(self, chemical, filters):
     try:
-        # self.update_state(state="STARTED")
+        self.update_state(state="STARTED")
         # Fetch data
         regulators, metrics = fetch_data(chemical["InChiKey"], filters)
 
