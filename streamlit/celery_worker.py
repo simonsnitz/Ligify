@@ -16,7 +16,7 @@ app.conf.update(
 )
 
 @app.task(bind=True)
-def run_ligify_task(chemical, filters):
+def run_ligify_task(self, chemical, filters):
     try:
         # self.update_state(state="STARTED")
         # Fetch data
