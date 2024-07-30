@@ -33,10 +33,7 @@ def streamlit_run():
             st.write('Task failed, please try again.')
             st.session_state.task_id = None
     
-    print(st.session_state)
-
     if 'result' in st.session_state:
-        print(st.session_state)
         regulators = st.session_state.result['regulators']
         metrics = st.session_state.result['metrics']
 
