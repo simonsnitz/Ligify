@@ -6,7 +6,7 @@ import time
 def streamlit_run():
     chem, results, prog, chemical, filters = run_streamlit()
 
-    if st.session_state.SUBMITTED:
+    if st.session_state.get('SUBMITTED'):
         # Start Celery task
         task = run_ligify_task.delay(chemical, filters)
         st.session_state.task_id = task.id
@@ -31,9 +31,10 @@ def streamlit_run():
             st.experimental_rerun()  # Check again
         elif task.state == 'FAILURE':
             st.write('Task failed, please try again.')
+            st.write(f"Error: {task.info.get('exc_message', 'Unknown error')}")
             st.session_state.task_id = None
 
-    if 'result' in st.session_state:
+    if 'result' in st.session_state and st.session_state.result is not None:
         regulators = st.session_state.result['regulators']
         metrics = st.session_state.result['metrics']
 
