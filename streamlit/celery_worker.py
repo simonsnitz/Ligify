@@ -1,4 +1,5 @@
 # streamlit/celery_worker.py
+import time
 from celery import Celery
 from ligify.fetch_data import fetch_data
 
@@ -14,9 +15,21 @@ app.conf.update(
     worker_concurrency=1,  # Ensure only one task is processed at a time
 )
 
-@app.task
-def run_ligify_task(chemical, filters):
-    # Fetch data
-    regulators, metrics = fetch_data(chemical["InChiKey"], filters)
-    
-    return {"regulators": regulators, "metrics": metrics}
+@app.task(bind=True)
+def run_ligify_task(self, chemical, filters):
+    try:
+        self.update_state(state="STARTED")
+        # Fetch data
+        regulators, metrics = fetch_data(chemical["InChiKey"], filters)
+
+        self.update_state(state="SUCCESS")
+        time.sleep(1000) # Display the message
+        
+        return {"regulators": regulators, "metrics": metrics}
+    except Exception as e:
+        print(e)
+        # Optionally, you can store the error details in the result backend
+        self.update_state(
+            state='FAILURE',
+            meta={'exc_type': type(e).__name__, 'exc_message': str(e)}
+        )
