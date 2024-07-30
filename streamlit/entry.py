@@ -32,6 +32,8 @@ def streamlit_run():
         elif task.state == 'FAILURE':
             st.write('Task failed, please try again.')
             st.session_state.task_id = None
+    
+    print(st.session_state)
 
     if 'result' in st.session_state:
         print(st.session_state)
