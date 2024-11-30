@@ -11,3 +11,5 @@ rdkit==2023.3.2
 libChEBIpy==1.0.10
 biopython==1.81
 dnachisel==3.2.11
+redis==5.0.4
+celery==5.4.0

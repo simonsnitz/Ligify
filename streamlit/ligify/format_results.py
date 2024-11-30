@@ -256,4 +256,4 @@ def format_results(data_column, ligand_name):
                     c += 1
                 operon_seq += html
             st.markdown("<h5>Full operon sequence</h5>", unsafe_allow_html=True)
-            st.markdown(operon_seq, unsafe_allow_html=True)     
+            st.markdown(operon_seq, unsafe_allow_html=True)  
